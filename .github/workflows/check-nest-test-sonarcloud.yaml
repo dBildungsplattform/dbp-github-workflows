@@ -12,7 +12,7 @@ on:
         description: "Deployment stage"
         required: true
 env:
-  NODE_VERSION: ${{ inputs.node_version }}
+  NODE_VERSION: ${{ inputs.node_version }} # needed for npm test
   DEPLOY_STAGE: ${{ inputs.deploy_stage }}
 
 jobs:
