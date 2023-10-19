@@ -32,12 +32,8 @@ on:
       tag_generation:
         description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
         required: false
+        type: string
         default: "ticket_from_branch"
-        type: choice
-        options:
-          - ticket_from_branch
-          - commit_hash
-          - version_git_tag
 
 
 jobs:
