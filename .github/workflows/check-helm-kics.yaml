@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-    scan:
+    kics_scan:
       name: Kics Helm Chart Scan
       runs-on: ubuntu-latest
       permissions:
@@ -12,9 +12,9 @@ jobs:
 
       steps:
         - name: Checkout repository
-          uses: actions/checkout@v3
+          uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
         - name: Scan with kics
-          uses: checkmarx/kics-github-action@v1.7.0
+          uses: checkmarx/kics-github-action@8a44970e3d2eca668be41abe9d4e06709c3b3609 #v1.7.0
           with:
             path: ./charts
             platform_type: Kubernetes
