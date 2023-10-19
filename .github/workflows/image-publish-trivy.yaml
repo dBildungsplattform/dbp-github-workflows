@@ -1,4 +1,4 @@
-# Builds and pushes docker image and scans it with trivy (optional)
+# Builds and uploads a docker image and scans it with trivy (optional)
 # Trivy scan can be disabled
 # Image tag options: 
 # tag_generation: "ticket_from_branch" The ticket is extracted from the brnach name (eg. OPS-123-testing -> OPS-123)
@@ -6,7 +6,7 @@
 # tag_generation: "version_git_tag" Git tag with version is used as tag
 # add_latest_tag: true/false "latest" gets added as additiontal image tag
  
-name: Build and push to GHCR and run Trivy
+name: Build and upload image (and run Trivy)
 on:
   workflow_call:
     inputs:
@@ -19,57 +19,47 @@ on:
         required: false
         default: "./"
         type: string
+      container_registry:
+        description: "Target container registry. Currently only ghcr.io(default) is implemented."
+        required: false
+        type: string
+        default: "ghcr.io"
       add_latest_tag:
         description: "Wether latest should be added as image tag (default: false)"
         required: false
         type: boolean
         default: false
-      run_trivy_scan:
-        description: "Wether a trivy scan should run on the uploaded image (default: true)"
-        required: false
-        type: boolean
-        default: true
       tag_generation:
         description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
         required: false
         type: string
         default: "ticket_from_branch"
+      run_trivy_scan:
+        description: "Wether a trivy scan should run on the uploaded image (default: true)"
+        required: false
+        type: boolean
+        default: true
 
 
 jobs:
-  skip_ci:
-    runs-on: ubuntu-latest
-    # Map the output to the job's outputs
-    outputs:
-      canSkip: ${{ steps.check.outputs.canSkip }}
-    steps:
-      - id: check
-        uses: Legorooj/skip-ci@df35c2883fffdc55f099e8a673026d0d1e836d78 #v2
-
-  build_and_push_docker_to_ghcr:
-    name: Build and upload image
-    # Wait for the skip_ci job to run
-    needs: skip_ci
-    # And only run the build if canSkip isn't 'true'.
-    if: ${{ needs.skip_ci.outputs.canSkip != 'true' }}
+  build_and_upload_image:
+    name: Build and upload image to ${{ inputs.container_registry }}
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
-      pr_branch: ${{ github.head_ref || ''}} # TODO: remove after debugging
     permissions:
       packages: write
-      security-events: write
       actions: read
       contents: read
     steps:
       - name: Checkout Code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
 
-      - name: Docker meta Service Name for docker hub
-        id: docker_meta_img_hub
+      - name: Build image name and tags
+        id: docker_meta_img
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 #v5.0.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
+          images: ${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
@@ -78,30 +68,29 @@ jobs:
           flavor: |
             latest=${{ inputs.add_latest_tag }}
 
-      - name: Log into registry
+      - name: Login (GHCR)
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
+        if: ${{ inputs.container_registry == 'ghcr.io' }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push ${{ github.repository }}
+      - name: Build and push ${{ github.repository }} to ${{ inputs.container_registry }}
         id: docker_build_push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #v5.0.0
         with:
           context: ${{ inputs.context }}
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.docker_meta_img_hub.outputs.tags }}
-          labels: ${{ steps.docker_meta_img_hub.outputs.labels }}
+          tags: ${{ steps.docker_meta_img.outputs.tags }}
+          labels: ${{ steps.docker_meta_img.outputs.labels }}
 
   trivy_scan:
     name: Run Trivy scan for uploaded image
     # Wait for image upload
-    needs: 
-      - build_and_push_docker_to_ghcr
-      - skip_ci
-    if: ${{ needs.skip_ci.outputs.canSkip != 'true' && inputs.run_trivy_scan }}
+    needs: build_and_upload_image
+    if: ${{ inputs.run_trivy_scan }}
     runs-on: ubuntu-latest
     permissions:
       packages: read
@@ -113,7 +102,7 @@ jobs:
       - name: Create lowercase image ref
         id: image_ref_lower
         env:
-          image_ref: 'ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_push_docker_to_ghcr.outputs.digest }}'
+          image_ref: '${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner
