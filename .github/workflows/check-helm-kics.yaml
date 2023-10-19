@@ -1,0 +1,27 @@
+name: 'Check - Kics Helm'
+
+on:
+  workflow_call:
+    inputs:
+      chart_path:
+        type: string
+        description: "Path to charts"
+        required: false
+        default: "./charts"
+
+jobs:
+    kics_scan:
+      name: Kics Helm Chart Scan
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+        - name: Scan with kics
+          uses: checkmarx/kics-github-action@8a44970e3d2eca668be41abe9d4e06709c3b3609 #v1.7.0
+          with:
+            path: ${{ inputs.chart_path }}
+            platform_type: Kubernetes
+            fail_on: high
