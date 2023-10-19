@@ -76,7 +76,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push ${{ github.repository }} to ${{ inputs.container_registry }}
+      - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         id: docker_build_push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #v5.0.0
         with:
