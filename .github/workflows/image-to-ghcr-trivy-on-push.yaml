@@ -43,6 +43,8 @@ jobs:
     # And only run the build if canSkip isn't 'true'.
     if: ${{ needs.skip_ci.outputs.canSkip != 'true' }}
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.docker_build_push.outputs.digest }}
     permissions:
       packages: write
       security-events: write
@@ -81,8 +83,10 @@ jobs:
 
   trivy_scan:
     # Wait for image upload
-    needs: build_and_push_docker_to_ghcr
-    if: ${{ needs.skip_ci.outputs.canSkip != 'true' && run_trivy_scan }}
+    needs: 
+      - build_and_push_docker_to_ghcr
+      - skip_ci
+    if: ${{ needs.skip_ci.outputs.canSkip != 'true' && inputs.run_trivy_scan }}
     runs-on: ubuntu-latest
     permissions:
       packages: read
