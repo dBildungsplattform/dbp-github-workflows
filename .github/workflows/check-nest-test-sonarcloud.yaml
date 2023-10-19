@@ -5,7 +5,6 @@ on:
 
 env:
   NODE_VERSION: '18'
-  DEPLOY_STAGE: 'dev'
 
 jobs:
   nest_test_cov:
