@@ -19,6 +19,8 @@ jobs:
   nest_lint:
     name: Nest Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 5
     steps:
       - name: Checkout repository

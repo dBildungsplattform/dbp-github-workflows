@@ -19,6 +19,8 @@ jobs:
   nest_test_cov:
     name: Nest Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -52,6 +54,8 @@ jobs:
   code_analysis:
     name: SonarCloud
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [nest_test_cov]
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
