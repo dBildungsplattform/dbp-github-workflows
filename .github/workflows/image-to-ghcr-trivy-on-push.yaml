@@ -1,7 +1,6 @@
-# https://github.com/terraform-docs/gh-actions
-# https://github.com/norwoodj/helm-docs
-# Build and push docker image (Tag is the ticket extracted from the branch name, latest tag not set)
-# Run trivy check for image
+# To be called on pushes to a branch or pull requests
+# Builds and pushes docker image (image tag is the ticket extracted from the branch name)
+# Runs trivy check for image
  
 name: Build and push to GHCR and run Trivy
 on:
@@ -16,7 +15,18 @@ on:
         required: false
         default: "./"
         type: string
- 
+      add_latest_tag:
+        description: "Wether latest should be added as image tag (default: false)"
+        required: false
+        type: boolean
+        default: false
+      run_trivy_scan:
+        description: "Wether a trivy scan should run on the uploaded image (default: true)"
+        required: false
+        type: boolean
+        default: true
+
+
 jobs:
   skip_ci:
     runs-on: ubuntu-latest
@@ -25,7 +35,7 @@ jobs:
       canSkip: ${{ steps.check.outputs.canSkip }}
     steps:
       - id: check
-        uses: Legorooj/skip-ci@main
+        uses: Legorooj/skip-ci@df35c2883fffdc55f099e8a673026d0d1e836d78 #v2
 
   build_and_push_docker_to_ghcr:
     # Wait for the skip_ci job to run
@@ -40,20 +50,20 @@ jobs:
       contents: read
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
 
       - name: Docker meta Service Name for docker hub
         id: docker_meta_img_hub
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 #v5.0.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+
           flavor: |
-            latest=false
+            latest=${{ inputs.add_latest_tag }}
 
       - name: Log into registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -61,7 +71,7 @@ jobs:
 
       - name: Build and push ${{ github.repository }}
         id: docker_build_push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #v5.0.0
         with:
           context: ${{ inputs.context }}
           platforms: linux/amd64
@@ -69,15 +79,26 @@ jobs:
           tags: ${{ steps.docker_meta_img_hub.outputs.tags }}
           labels: ${{ steps.docker_meta_img_hub.outputs.labels }}
 
+  trivy_scan:
+    # Wait for image upload
+    needs: build_and_push_docker_to_ghcr
+    if: ${{ needs.skip_ci.outputs.canSkip != 'true' && run_trivy_scan }}
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      security-events: write
+      actions: read
+      contents: read
+    steps:
       # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
         id: image_ref_lower
         env:
-          image_ref: 'ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ steps.docker_build_push.outputs.digest }}'
+          image_ref: 'ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_push_docker_to_ghcr.outputs.digest }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe #v0.12.0
         with:
           image-ref: ${{ steps.image_ref_lower.outputs.output }}
           format: "sarif"
@@ -88,6 +109,6 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@0116bc2df50751f9724a2e35ef1f24d22f90e4e1 #v2.22.3
         with:
           sarif_file: 'trivy-results.sarif'
