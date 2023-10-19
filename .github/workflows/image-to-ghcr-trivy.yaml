@@ -1,6 +1,10 @@
-# To be called on pushes to a branch or pull requests
-# Builds and pushes docker image (image tag is the ticket extracted from the branch name)
-# Runs trivy check for image
+# Builds and pushes docker image and scans it with trivy (optional)
+# Trivy scan can be disabled
+# Image tag options: 
+# tag_generation: "ticket_from_branch" The ticket is extracted from the brnach name (eg. OPS-123-testing -> OPS-123)
+# tag_generation: "commit_hash" Short hash of the commit is used as tag
+# tag_generation: "version_git_tag" Git tag with version is used as tag
+# add_latest_tag: true/false "latest" gets added as additiontal image tag
  
 name: Build and push to GHCR and run Trivy
 on:
@@ -25,6 +29,11 @@ on:
         required: false
         type: boolean
         default: true
+      tag_generation:
+        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
+        required: false
+        type: string
+        default: "ticket_from_branch"
 
 
 jobs:
@@ -38,6 +47,7 @@ jobs:
         uses: Legorooj/skip-ci@df35c2883fffdc55f099e8a673026d0d1e836d78 #v2
 
   build_and_push_docker_to_ghcr:
+    name: Build and upload image
     # Wait for the skip_ci job to run
     needs: skip_ci
     # And only run the build if canSkip isn't 'true'.
@@ -60,7 +70,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
           tags: |
-            type=match,value={{branch}},pattern=^\w+?-\d+
+            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
+            type=sha,enable=${{ inputs.tag_generation == 'commit_hash' }}
+            type=pep440,pattern={{version}},enable=${{ inputs.tag_generation == 'version_git_tag' }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
 
@@ -82,6 +94,7 @@ jobs:
           labels: ${{ steps.docker_meta_img_hub.outputs.labels }}
 
   trivy_scan:
+    name: Run Trivy scan for uploaded image
     # Wait for image upload
     needs: 
       - build_and_push_docker_to_ghcr
