@@ -2,9 +2,18 @@ name: 'Check - Nest Test & Sonarcloud'
 
 on:
   workflow_call:
-
+    inputs:
+      node_version:
+        type: string
+        description: "Version to use for node"
+        required: true
+      deploy_stage:
+        type: string
+        description: "Deployment stage"
+        required: true
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: ${{ inputs.node_version }}
+  DEPLOY_STAGE: ${{ inputs.deploy_stage }}
 
 jobs:
   nest_test_cov:
