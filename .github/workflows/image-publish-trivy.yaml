@@ -39,6 +39,21 @@ on:
         required: false
         type: boolean
         default: true
+      trivy_severity:
+        description: 'Severity filter for trivy (default "CRITICAL,HIGH")'
+        required: false
+        default: "CRITICAL,HIGH"
+        type: string
+      fail_on_vulnerabilites:
+        description: "Whether the workflow should fail if trivy finds vulnerabilities"
+        required: false
+        default: true
+        type: boolean
+      ignore-unfixed:
+        description: "Ignore vulerabilities without fix"
+        required: false
+        default: true
+        type: boolean
 
 
 jobs:
@@ -95,25 +110,10 @@ jobs:
       packages: read
       security-events: write
     steps:
-      # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
-      - name: Create lowercase image ref
-        id: image_ref_lower
-        env:
+      - name: Trivy scan
+        uses: ./.github/workflows/image-publish-trivy.yaml
+        with:
           image_ref: '${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
-        run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe #v0.12.0
-        with:
-          image-ref: ${{ steps.image_ref_lower.outputs.output }}
-          format: "sarif"
-          output: "trivy-results.sarif"
-          severity: "CRITICAL,HIGH"
-          exit-code: 1
-          ignore-unfixed: true
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@0116bc2df50751f9724a2e35ef1f24d22f90e4e1 #v2.22.3
-        with:
-          sarif_file: 'trivy-results.sarif'
+          severity: ${{ inputs.trivy_severity }}
+          fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
+          ignore-unfixed: ${{ inputs.ignore-unfixed }}
