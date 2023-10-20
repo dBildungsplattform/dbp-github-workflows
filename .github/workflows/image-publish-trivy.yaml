@@ -6,7 +6,7 @@
 # tag_generation: "version_git_tag" Git tag with version is used as tag
 # add_latest_tag: true/false "latest" gets added as additiontal image tag
  
-name: Build and upload image (and run Trivy)
+name: Publish image (and run Trivy)
 on:
   workflow_call:
     inputs:
@@ -58,7 +58,7 @@ on:
 
 jobs:
   build_and_upload_image:
-    name: Build and upload image to ${{ inputs.container_registry }}
+    name: Publish image to ${{ inputs.container_registry }}
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
