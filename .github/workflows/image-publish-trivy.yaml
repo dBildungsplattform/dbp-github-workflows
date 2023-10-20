@@ -101,7 +101,7 @@ jobs:
           labels: ${{ steps.docker_meta_img.outputs.labels }}
 
   trivy_scan:
-    name: Run Trivy scan for uploaded image
+    name: Trivy scan for uploaded image
     # Wait for image upload
     needs: build_and_upload_image
     if: ${{ inputs.run_trivy_scan }}

@@ -24,8 +24,7 @@ on:
 
 jobs:
   trivy_scan:
-    name: Run Trivy scan for uploaded image
-    # Wait for image upload
+    name: Trivy Scan
     runs-on: ubuntu-latest
     permissions:
         packages: read
