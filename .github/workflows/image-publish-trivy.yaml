@@ -105,15 +105,12 @@ jobs:
     # Wait for image upload
     needs: build_and_upload_image
     if: ${{ inputs.run_trivy_scan }}
-    runs-on: ubuntu-latest
     permissions:
       packages: read
       security-events: write
-    steps:
-      - name: Trivy scan
-        uses: ./.github/workflows/image-publish-trivy.yaml
-        with:
-          image_ref: '${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
-          severity: ${{ inputs.trivy_severity }}
-          fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
-          ignore-unfixed: ${{ inputs.ignore-unfixed }}
+    uses: ./.github/workflows/check-trivy.yaml
+    with:
+      image_ref: '${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
+      severity: ${{ inputs.trivy_severity }}
+      fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
+      ignore-unfixed: ${{ inputs.ignore-unfixed }}
