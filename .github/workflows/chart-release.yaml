@@ -2,13 +2,32 @@ name: Scan and release helm chart
 
 on:
   workflow_call:
-    
+    inputs:
+      chart_path:
+        type: string
+        description: "Path to charts"
+        required: false
+        default: "./charts"
+      chart_name:
+        type: string
+        description: "Name of the Chart"
+        required: true
+      chart_version:
+        type: string
+        description: "Chart version (if version in Chart.yaml should be used)"
+        required: false
+        default: ""
+      substitute_placeholders:
+        type: string
+        description: "Replace placeholders before chart packaging. Defined as sed command (optional)."
+        required: false
+        default: ""
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           fetch-depth: 0
 
@@ -18,12 +37,11 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com" 
 
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 #v3.5
         with:
           version: 3.5.0 
-
       - name: Helm Repository Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
           repository: dBildungsplattform/helm-charts-registry
           token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
@@ -31,22 +49,24 @@ jobs:
           persist-credentials: true
           ref: main
           path: helm-charts-registry
+      - name: Replace placeholders
+        if: inputs.substitute_placeholders != ''
+        run:  |
+          find ${{ inputs.chart_path }}/ -type f -exec sed -i -e '${{ inputs.substitute_placeholders }}' {} \;
       - name: Prepare Helm Chart
         run:  |
-          # dbildungs-iam
-          helm package charts/dbildungs-iam -d helm-charts-registry
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.chart_version != '' && format('--version {0}', inputs.chart_version) }}
           cd helm-charts-registry
-          if [ -d "automation/dbildungs-iam" ]; then rm -r automation/dbildungs-iam; fi
-          tar -xzf dbildungs-iam*.tgz
-          mv dbildungs-iam automation/dbildungs-iam
+          if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
+          tar -xzf ${{ inputs.chart_name }}*.tgz
+          mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
       - name: Push Helm Chart
         env:
           GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
         run: |
-          git config --global user.email "dbildungs-iam@dbildungsplattform.de"
-          git config --global user.name "dbildungs-iam-gha"
-          CHART_PACKAGE_NAMES="dbildungs-iam"
+          git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
+          git config --global user.name "${{ inputs.chart_name }}-gha"
           cd helm-charts-registry/automation
-          git add $CHART_PACKAGE_NAMES
-          git commit -m "$CHART_PACKAGE_NAMES"
+          git add ${{ inputs.chart_name }}
+          git commit -m "${{ inputs.chart_name }}"
           git push origin main
