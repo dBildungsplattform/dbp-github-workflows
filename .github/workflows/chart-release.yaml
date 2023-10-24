@@ -55,7 +55,7 @@ jobs:
           find ${{ inputs.chart_path }}/ -type f -exec sed -i -e '${{ inputs.substitute_placeholders }}' {} \;
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -u -d helm-charts-registry ${{ inputs.chart_version != '' && format('--version {0}', inputs.chart_version) }}
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.chart_version != '' && format('--version {0}', inputs.chart_version) }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
