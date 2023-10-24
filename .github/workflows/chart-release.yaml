@@ -1,4 +1,10 @@
-name: Scan and release helm chart
+# Packages the helm chart and pushes it to the helm-charts-registry where it gets released
+# Options for generated helm chart versions:
+# version_generation: "chart_yaml" The version specified in the Chart.yaml is used
+# version_generation: "specified" The version specified with chart_version is used
+# version_generation: "ticket_from_branch_short_hash" The version is generated as 0.0.0-<ticket from branch name>-<short commit hash>
+# version_generation: "short_hash" The version is generated as 0.0.1-<short commit hash>
+name: Release helm chart
 
 on:
   workflow_call:
