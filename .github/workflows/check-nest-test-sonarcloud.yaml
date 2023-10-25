@@ -25,8 +25,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+
       - name: Docker check
         run: docker --version
+
       - name: Inject Secrets
         uses: timheuer/base64-to-file@ca9e30baf83f7f26708fb0059af9a0973fe5f27e #v1.2.3
         with:
@@ -34,23 +36,29 @@ jobs:
           fileDir: './config/'
           # These are placeholder secrets without any significance
           encodedString: ewogICAgIkRCIjogewogICAgICAgICJTRUNSRVQiOiAiVmVyeSBoaWRkZW4gc2VjcmV0IgogICAgfSwKICAgICJLRVlDTE9BSyI6IHsKICAgICAgICAiQURNSU5fU0VDUkVUIjogIkNsaWVudCBTZWNyZXQiCiAgICB9Cn0=
+
       - name: Setup node
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d #v3.8.1
         with:
           node-version: ${{ env.NODE_VERSION }}
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
+
       - name: Run tests
         run: npm run test:ci
+
       - name: Save test artifacts
         run: |
           mkdir -p coverage
           mv ./coverage artifacts
+
       - name: Upload test artifacts
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 #v3.1.3
         with:
           name: test-artifacts
           path: artifacts/
+
   code_analysis:
     name: SonarCloud
     runs-on: ubuntu-latest
@@ -61,11 +69,13 @@ jobs:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
         with:
           fetch-depth: 0
+
       - name: Download artifacts
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a #v3.0.2
         with:
           name: test-artifacts
           path: artifacts/
+
       - name: SonarCloud upload
         uses: SonarSource/sonarcloud-github-action@c25d2e7e3def96d0d1781000d3c429da22cd6252 #v2.0.2
         env:
