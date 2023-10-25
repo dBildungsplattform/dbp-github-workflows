@@ -1,0 +1,105 @@
+# Packages the helm chart and pushes it to the helm-charts-registry where it gets released
+# Options for generated helm chart versions:
+# version_generation: "chart_yaml" The version specified in the Chart.yaml is used
+# version_generation: "specified" The version specified with chart_version is used
+# version_generation: "ticket_from_branch_short_hash" The version is generated as 0.0.0-<ticket from branch name>-<short commit hash>
+# version_generation: "short_hash" The version is generated as 0.0.1-<short commit hash>
+name: Release helm chart
+
+on:
+  workflow_call:
+    inputs:
+      chart_path:
+        type: string
+        description: "Path to charts"
+        required: false
+        default: "./charts"
+      chart_name:
+        type: string
+        description: "Name of the Chart"
+        required: true
+      version_generation:
+        type: string
+        description: "How the chart version gets generated: chart_yaml (default), specified, ticket_from_branch_short_hash, short_hash"
+        required: false
+        default: "chart_yaml"
+      chart_version:
+        type: string
+        description: "Chart version (required if version_generation: specified)"
+        required: false
+      substitute_placeholders:
+        type: string
+        description: "Replace placeholders before chart packaging. Defined as sed command (optional)."
+        required: false
+        default: ""
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com" 
+
+      - name: Install Helm
+        uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 #v3.5
+        with:
+          version: 3.5.0 
+
+      - name: Helm Repository Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          repository: dBildungsplattform/helm-charts-registry
+          token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+          fetch-depth: 0
+          persist-credentials: true
+          ref: main
+          path: helm-charts-registry
+
+      - name: Replace placeholders
+        if: inputs.substitute_placeholders != ''
+        run:  |
+          find ${{ inputs.chart_path }}/ -type f -exec sed -i -e '${{ inputs.substitute_placeholders }}' {} \;
+
+      - name: Use ticket and commit hash as version
+        if: ${{ inputs.version_generation == 'ticket_from_branch_short_hash' }}
+        run: |
+          short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
+          regex='^([[:alpha:]]+?-[[:digit:]]+)'
+          [[ $GITHUB_REF_NAME =~ $regex ]]
+          echo "chart_version=0.0.0-${BASH_REMATCH[1]}-${short_sha}" >> $GITHUB_ENV
+
+      - name: Use commit hash as version
+        if: ${{ inputs.version_generation == 'short_hash' }}
+        run: |
+          short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
+          echo "chart_version=0.0.1-${short_sha}" >> $GITHUB_ENV
+
+      - name: Use specified chart version
+        if: ${{ inputs.version_generation == 'specified' }}
+        run: |
+          echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
+
+      - name: Prepare Helm Chart
+        run:  |
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' }}
+          cd helm-charts-registry
+          if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
+          tar -xzf ${{ inputs.chart_name }}*.tgz
+          mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
+
+      - name: Push Helm Chart
+        env:
+          GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+        run: |
+          git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
+          git config --global user.name "${{ inputs.chart_name }}-gha"
+          cd helm-charts-registry/automation
+          git add ${{ inputs.chart_name }}
+          git commit -m "${{ inputs.chart_name }}"
+          git push origin main
