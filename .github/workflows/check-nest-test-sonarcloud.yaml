@@ -11,8 +11,14 @@ on:
         type: string
         description: "Deployment stage"
         required: true
+      node_heap_size:
+        type: number
+        description: "Heap Size for node in MB"
+        required: false
+        default: 4096
 env:
   NODE_VERSION: ${{ inputs.node_version }} # needed for npm test
+  NODE_OPTIONS: "--max-old-space-size=${{ inputs.node_heap_size }}"
   DEPLOY_STAGE: ${{ inputs.deploy_stage }}
 
 jobs:
