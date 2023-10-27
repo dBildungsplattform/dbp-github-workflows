@@ -1,4 +1,4 @@
-name: 'Check - Nest Test & Sonarcloud'
+name: 'Check - Tests & Sonarcloud'
 
 on:
   workflow_call:
@@ -16,23 +16,28 @@ on:
         description: "Heap Size for node in MB"
         required: false
         default: 4096
+      skip_tests:
+        type: boolean
+        description: "Skip running the tests and just scan with sonarcloud"
+        required: false
+        default: false
       timeout_minutes:
         type: number
-        description: "Heap Size for node in MB"
+        description: "Timout in minutes"
         required: false
-        default: 4096
+        default: 10
 env:
   NODE_VERSION: ${{ inputs.node_version }} # needed for npm test
   NODE_OPTIONS: "--max-old-space-size=${{ inputs.node_heap_size }}"
   DEPLOY_STAGE: ${{ inputs.deploy_stage }}
 
 jobs:
-  nest_test_cov:
-    name: Nest Test
+  tests_sonarcloud:
+    name: Tests and Sonarcloud
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    timeout-minutes: 10
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
@@ -59,9 +64,11 @@ jobs:
         run: npm ci --prefer-offline --no-audit
 
       - name: Run tests
+        if: ${{ !inputs.skip_tests }}
         run: npm run test:ci
 
       - name: Save test artifacts (ensure compatibility to previous implementation)
+        if: ${{ !inputs.skip_tests }}
         run: |
           mkdir -p coverage
           mv ./coverage artifacts
