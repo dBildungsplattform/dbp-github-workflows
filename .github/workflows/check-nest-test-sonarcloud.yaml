@@ -9,8 +9,9 @@ on:
         required: true
       deploy_stage:
         type: string
-        description: "Deployment stage"
-        required: true
+        description: "Deployment stage (Some tests need this varaible)"
+        default: ""
+        required: false
       node_heap_size:
         type: number
         description: "Heap Size for node in MB"
