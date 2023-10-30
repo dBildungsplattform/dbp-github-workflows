@@ -21,6 +21,11 @@ on:
         required: false
         default: true
         type: boolean
+      trivy-sarif-category:
+        description: "The category for the uploaded sarif file"
+        required: false
+        default: "LastImage"
+        type: string
 
 jobs:
   trivy_scan:
@@ -46,6 +51,12 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
+
+      - name: Upload sarif file for debugging
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 #v3.1.3
+        with:
+          name: trivy-sarif
+          path: trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
