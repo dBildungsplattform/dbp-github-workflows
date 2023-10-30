@@ -35,6 +35,9 @@ jobs:
         packages: read
         security-events: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
+
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
         id: image_ref_lower
