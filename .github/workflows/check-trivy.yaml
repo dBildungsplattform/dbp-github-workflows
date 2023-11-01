@@ -59,6 +59,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           echo "::error::Trivy step failed. This probably means there is at least one vulnerability with severity ${{ inputs.severity }}. They are visible in the GitHub Security tab (set the filter to the correct branch)"
+          exit 1
 
       - name: Override location of findings
         if: ${{ always() && inputs.vulnerability_location != '' }}
