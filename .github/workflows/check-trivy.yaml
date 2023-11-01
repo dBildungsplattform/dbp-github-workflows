@@ -54,9 +54,15 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
+      
+      - name: Override location of findings
+        if: ${{ failed() }}
+        run: |
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.vulnerability_location }}"' trivy-results.sarif > trivy.tmp
+          mv trivy.tmp trivy-results.sarif
 
       - name: Override location of findings
-        if: ${{ always() && inputs.vulnerability_location != "" }}
+        if: ${{ always() && inputs.vulnerability_location != '' }}
         run: |
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.vulnerability_location }}"' trivy-results.sarif > trivy.tmp
           mv trivy.tmp trivy-results.sarif
