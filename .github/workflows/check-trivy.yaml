@@ -22,7 +22,7 @@ on:
         default: true
         type: boolean
       vulnerability_location:
-        description: "If defined it overrides the reported location (normally <organisation>/<image>) of the trivy findings to a specific file (e.g. Dockerfile)"
+        description: "If defined it overrides the reported location (normally <organization>/<image>) of the trivy findings to a specific file (e.g. Dockerfile)"
         required: false
         default: ""
         type: string
