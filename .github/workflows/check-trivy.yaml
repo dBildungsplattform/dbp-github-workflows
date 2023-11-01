@@ -56,7 +56,7 @@ jobs:
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
       
       - name: Trivy explanation
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         run: |
           echo "Trivy step failed. This probably means there is at least one vulnerability with severity ${{ inputs.severity }}"
           echo "They are visible in the GitHub Security (set the filter to the correct branch)"
