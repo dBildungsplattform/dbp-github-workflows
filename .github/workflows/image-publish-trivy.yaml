@@ -54,6 +54,11 @@ on:
         required: false
         default: true
         type: boolean
+      vulnerability_location:
+        description: "If defined it overrides the reported location (normally <organisation>/<image>) of the trivy findings to a specific file (e.g. Dockerfile)"
+        required: false
+        default: ""
+        type: string
 
 
 jobs:
@@ -114,3 +119,4 @@ jobs:
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
+      vulnerability_location: ${{ inputs.vulnerability_location }}
