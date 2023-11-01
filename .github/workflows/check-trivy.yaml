@@ -55,11 +55,11 @@ jobs:
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
       
-      - name: Override location of findings
+      - name: Trivy explanation
         if: ${{ failed() }}
         run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.vulnerability_location }}"' trivy-results.sarif > trivy.tmp
-          mv trivy.tmp trivy-results.sarif
+          echo "Trivy step failed. This probably means there is at least one vulnerability with severity ${{ inputs.severity }}"
+          echo "They are visible in the GitHub Security (set the filter to the correct branch)"
 
       - name: Override location of findings
         if: ${{ always() && inputs.vulnerability_location != '' }}
