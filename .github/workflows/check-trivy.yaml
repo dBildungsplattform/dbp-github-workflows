@@ -56,9 +56,10 @@ jobs:
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
 
       - name: Override location of findings
-        if: ${{ inputs.vulnerability_location != "" }}
+        if: ${{ always() && inputs.vulnerability_location != "" }}
         run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.vulnerability_location }}"'
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.vulnerability_location }}"' trivy-results.sarif > trivy.tmp
+          mv trivy.tmp trivy-results.sarif
 
       - name: Upload sarif file for debugging
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 #v3.1.3
