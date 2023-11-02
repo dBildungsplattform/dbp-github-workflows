@@ -21,7 +21,7 @@ on:
         required: false
         default: true
         type: boolean
-      vulnerability_location:
+      report_location:
         description: "If defined it overrides the reported location (normally <organization>/<image>) of the trivy findings to a specific file (e.g. Dockerfile)"
         required: false
         default: ""
@@ -59,9 +59,9 @@ jobs:
           exit 1
 
       - name: Override location of findings
-        if: ${{ always() && inputs.vulnerability_location != '' }}
+        if: ${{ always() && inputs.report_location != '' }}
         run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.vulnerability_location }}"' trivy-results.sarif > trivy.tmp
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
           mv trivy.tmp trivy-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
