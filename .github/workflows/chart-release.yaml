@@ -87,8 +87,7 @@ jobs:
 
       # The following step updates the appVersion in Chart.yaml with the latest image tag
       - name: Update appVersion in Chart.yaml
-        run: |
-          
+        run: |  
           IMAGE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`) # Get latest tag
 
 
