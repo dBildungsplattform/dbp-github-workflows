@@ -21,6 +21,11 @@ on:
         required: false
         default: true
         type: boolean
+      report_location:
+        description: "If defined it overrides the reported location (normally <organization>/<image>) of the trivy findings to a specific file (e.g. Dockerfile)"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   trivy_scan:
@@ -36,7 +41,6 @@ jobs:
         env:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe #v0.12.0
         with:
@@ -47,6 +51,16 @@ jobs:
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
 
+      - name: Trivy explanation
+        if: ${{ failure() }}
+        run: |
+          echo "::error::Trivy step failed. This probably means there is at least one vulnerability with severity ${{ inputs.severity }}. They are visible in the GitHub Security tab (set the filter to the correct branch)"
+          exit 1
+      - name: Override location of findings
+        if: ${{ always() && inputs.report_location != '' }}
+        run: |
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
+          mv trivy.tmp trivy-results.sarif
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@0116bc2df50751f9724a2e35ef1f24d22f90e4e1 #v2.22.3
