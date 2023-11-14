@@ -85,21 +85,28 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-      - name: Prepare Helm Chart
-        run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' }}
-          cd helm-charts-registry
-          if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
-          tar -xzf ${{ inputs.chart_name }}*.tgz
-          mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
-
-      - name: Push Helm Chart
-        env:
-          GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+      # The following step updates the appVersion in Chart.yaml with the latest image tag
+      - name: Update appVersion in Chart.yaml
         run: |
-          git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
-          git config --global user.name "${{ inputs.chart_name }}-gha"
-          cd helm-charts-registry/automation
-          git add ${{ inputs.chart_name }}
-          git commit -m "${{ inputs.chart_name }}"
-          git push origin main
+          
+          IMAGE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`) # Get latest tag
+
+
+      #- name: Prepare Helm Chart
+      #  run:  |
+      #    helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' }}
+      #    cd helm-charts-registry
+      #    if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
+      #    tar -xzf ${{ inputs.chart_name }}*.tgz
+      #    mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
+
+      #- name: Push Helm Chart
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+      #  run: |
+      #    git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
+      #    git config --global user.name "${{ inputs.chart_name }}-gha"
+      #    cd helm-charts-registry/automation
+      #    git add ${{ inputs.chart_name }}
+      #    git commit -m "${{ inputs.chart_name }}"
+      #    git push origin main
