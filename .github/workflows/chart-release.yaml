@@ -32,6 +32,26 @@ on:
         description: "Replace placeholders before chart packaging. Defined as sed command (optional)."
         required: false
         default: ""
+      container_registry:
+        description: "Target container registry. Currently only ghcr.io(default) is implemented."
+        required: false
+        type: string
+        default: "ghcr.io"
+      image_name:
+        description: "Name of the image to build"
+        required: true
+        type: string
+      tag_generation:
+        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
+        required: false
+        type: string
+        default: "ticket_from_branch"
+      add_latest_tag:
+        description: "Whether latest should be added as image tag (default: false)"
+        required: false
+        type: boolean
+        default: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -85,14 +105,32 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-        # The following step updates the appVersion in Chart.yaml with the latest image tag
+      - name: Generate Docker metadata
+        id: docker_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}
+          tags: |
+            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
+            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
+            type=sha,enable=${{ inputs.tag_generation == 'commit_hash' }}
+            type=pep440,pattern={{version}},enable=${{ inputs.tag_generation == 'version_git_tag' }}
+          flavor: |
+            latest=${{ inputs.add_latest_tag }}
+
       - name: Update appVersion in Chart.yaml
         run: |
-          
-          IMAGE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`) # Get image tag
-          sed -i "s/appVersion:.*/appVersion: \"$IMAGE_TAG\"/g" ${{ inputs.chart_path }}/${{ inputs.chart_name }}/Chart.yaml
-          git commit -am "Update appVersion to $IMAGE_TAG"
-          git push
+          # Extract the first tag from the generated list
+          IMAGE_TAG=$(echo "${{ steps.docker_meta.outputs.tags }}" | cut -d ',' -f 1)
+
+
+
+
+
+
+
+
+
 
       #- name: Prepare Helm Chart
       #  run:  |
