@@ -85,11 +85,14 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-      # The following step updates the appVersion in Chart.yaml with the latest image tag
+        # The following step updates the appVersion in Chart.yaml with the latest image tag
       - name: Update appVersion in Chart.yaml
-        run: |  
-          IMAGE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`) # Get image  tag
-
+        run: |
+          
+          IMAGE_TAG=$(git describe --tags `git rev-list --tags --max-count=1`) # Get image tag
+          sed -i "s/appVersion:.*/appVersion: \"$IMAGE_TAG\"/g" ${{ inputs.chart_path }}/${{ inputs.chart_name }}/Chart.yaml
+          git commit -am "Update appVersion to $IMAGE_TAG"
+          git push
 
       #- name: Prepare Helm Chart
       #  run:  |
