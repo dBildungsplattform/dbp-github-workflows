@@ -101,11 +101,11 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-      - name: Generate Docker metadata
+      - name: Docker meta
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/dbildungsplattform/dbildungs-iam-keycloak
+          #images: ghcr.io/dbildungsplattform/dbildungs-iam-keycloak
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
@@ -118,6 +118,7 @@ jobs:
         run: |
           # Extract the first tag from the generated list
           IMAGE_TAG=$(echo "${{ steps.docker_meta.outputs.tags }}" | cut -d ',' -f 1)
+          sed -i "s/appVersion:.*/appVersion: \"$IMAGE_TAG\"/" charts/dbildungscloud-iam-keycloak/Chart.yaml
 
 
 
