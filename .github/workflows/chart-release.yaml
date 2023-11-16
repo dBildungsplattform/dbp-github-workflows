@@ -109,7 +109,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}
+          images: ghcr.io/dbildungsplattform/dbildungs-iam-keycloak
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
