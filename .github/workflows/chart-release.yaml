@@ -123,8 +123,8 @@ jobs:
           # Extract the first tag from the generated list
           IMAGE_TAG=$(echo "${{ steps.docker_meta.outputs.tags }}" | cut -d ',' -f 1)
           REPO_NAME="${{ github.event.repository.name }}"
-          sed -i "s/appVersion:.*/appVersion: \"$IMAGE_TAG\"/" charts/${{ github.event.repository.name }}/Chart.yaml
-
+          # sed -i "s/appVersion:.*/appVersion: \"$IMAGE_TAG\"/" charts/${{ github.event.repository.name }}/Chart.yaml
+          sed -i "s|appVersion:.*|appVersion: \"${IMAGE_TAG}\"|" charts/${{ github.event.repository.name }}/Chart.yaml
 
 
 
