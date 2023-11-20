@@ -118,17 +118,16 @@ jobs:
           flavor: |
             latest=${{ inputs.add_latest_tag }}
 
-      - name: Update appVersion in Chart.yaml
+  
+      - name: Obtain New Docker Image Tag
+        id: obtain-image-tag
         run: |
-          # Extract the first tag from the generated list
-          IMAGE_TAG=$(echo "${{ steps.docker_meta.outputs.tags }}" | cut -d ',' -f 1)
-          REPO_NAME="${{ github.event.repository.name }}"
-          # sed -i "s/appVersion:.*/appVersion: \"$IMAGE_TAG\"/" charts/${{ github.event.repository.name }}/Chart.yaml
-          sed -i "s|appVersion:.*|appVersion: \"${IMAGE_TAG}\"|" charts/${{ github.event.repository.name }}/Chart.yaml
+          echo "::set-output name=new_image_tag::$(echo "${{ steps.docker_meta.outputs.tags }}" | cut -d ',' -f 1)"
 
-
-
-
+      - name: Update appVersion in Chart.yaml
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.appVersion = "${{ steps.obtain-image-tag.outputs.new_image_tag }}"' charts/dbildungscloud-iam-keycloak/Chart.yaml
 
 
 
