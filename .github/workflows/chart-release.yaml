@@ -115,11 +115,13 @@ jobs:
             DOCKER_TAG="latest"
           fi
           echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+
+        
  
       - name: Update appVersion in Chart.yaml
         uses: mikefarah/yq@master
         with:
-          cmd: yq -i '.appVersion = "${{ env.DOCKER_TAG }}"' charts/${{ github.event.repository.name }}/Chart.yaml
+          cmd: yq -i '.appVersion = "${{ env.DOCKER_TAG }}"' charts/*/Chart.yaml
 
 
 
