@@ -106,33 +106,21 @@ jobs:
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
       - name: Determine Docker Tag
-        id: determine-tag
         run: |
           if [[ $GITHUB_REF_NAME =~ ^([[:alpha:]]+?-[[:digit:]]+) ]]; then
             DOCKER_TAG="${BASH_REMATCH[1]}"
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "$GITHUB_REF_NAME" == "main" ]]; then
             DOCKER_TAG="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
           else
             DOCKER_TAG="latest"
           fi
           echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
-          echo "::set-output name=new_image_tag::$DOCKER_TAG"
-  
+ 
       - name: Update appVersion in Chart.yaml
         uses: mikefarah/yq@master
         with:
-            cmd: yq -i '.appVersion = "${{ steps.determine-tag.outputs.new_image_tag }}"' charts/${{ github.event.repository.name }}/Chart.yaml
-        
-      - name: Commit and push changes
-        run: |
-            git config --global user.name "${{ github.actor }}"
-            git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-            git add charts/${{ github.event.repository.name }}/Chart.yaml
-            git commit -m "Update appVersion to ${{ steps.determine-tag.outputs.new_image_tag }}"
-            git push
+          cmd: yq -i '.appVersion = "${{ env.DOCKER_TAG }}"' charts/${{ github.event.repository.name }}/Chart.yaml
 
-
-          
 
 
 
