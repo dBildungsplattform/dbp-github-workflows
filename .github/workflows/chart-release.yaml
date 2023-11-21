@@ -32,25 +32,11 @@ on:
         description: "Replace placeholders before chart packaging. Defined as sed command (optional)."
         required: false
         default: ""
-      container_registry:
-        description: "Target container registry. Currently only ghcr.io(default) is implemented."
-        required: false
-        type: string
-        default: "ghcr.io"
       tag_generation:
         description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
         required: false
         type: string
         default: "ticket_from_branch"
-      add_latest_tag:
-        description: "Whether latest should be added as image tag (default: false)"
-        required: false
-        type: boolean
-        default: false
-      image_name:
-          description: "Name of the image to build"
-          required: true
-          type: string
 
 jobs:
   release:
@@ -106,25 +92,17 @@ jobs:
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
 
-      # Extract part of the branch name
-      - name: Extract Branch Tag
-        id: extract-branch-tag
+      - name: Determine Docker Tag
         run: |
-          regex='^([[:alpha:]]+?-[[:digit:]]+)'
-          if [[ $GITHUB_REF_NAME =~ $regex ]]; then
-            echo "extracted_tag=${BASH_REMATCH[1]}" >> $GITHUB_ENV
+          if [[ "${{ inputs.tag_generation }}" == 'ticket_from_branch'; then
+            DOCKER_TAG="${{ inputs.tag_generation }}"
+          elif [[ "${{ inputs.tag_generation }}" == 'commit_hash' ]]; then
+            DOCKER_TAG="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
           else
-            echo "extracted_tag=" >> $GITHUB_ENV
-
-      # Set DOCKER_TAG based on the comparison
-      - name: Set Docker Tag
-        run: |
-          if [[ "${{ inputs.tag_generation }}" == "$extracted_tag" ]]; then
-            echo "DOCKER_TAG=${{ inputs.tag_generation }}" >> $GITHUB_ENV
-          elif [[ "$GITHUB_REF_NAME" == "main" ]]; then
-            echo "DOCKER_TAG=sha-$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
-          else
-            echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+            DOCKER_TAG="latest"
+          fi
+            echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+        
 
 
       #- name: Determine Docker Tag
