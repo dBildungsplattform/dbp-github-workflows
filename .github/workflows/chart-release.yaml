@@ -128,10 +128,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
         run: |
-          FEATURE_BRANCH="DBP-352-Set-the-correct-Docker-Image-in-the-Helm-chart-for-each-SPSH-repository" 
           git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
           git config --global user.name "${{ inputs.chart_name }}-gha"
           cd helm-charts-registry/automation
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
-          git push origin $FEATURE_BRANCH
+          git push origin main
