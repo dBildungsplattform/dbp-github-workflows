@@ -104,13 +104,13 @@ jobs:
       #    echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
       
       - name: Determine Docker Tag
-      if: ${{ inputs.tag_generation == 'ticket_from_branch' }}
-      run: |
-        regex='^([[:alpha:]]+?-[[:digit:]]+)'
-        if [[ $GITHUB_REF_NAME =~ $regex ]]; then
+        if: ${{ inputs.tag_generation == 'ticket_from_branch' }}
+        run: |
+          regex='^([[:alpha:]]+?-[[:digit:]]+)'
+          if [[ $GITHUB_REF_NAME =~ $regex ]]; then
           DOCKER_TAG="${BASH_REMATCH[1]}"
           echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
-        fi
+          fi
     
 
         
