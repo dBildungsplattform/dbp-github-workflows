@@ -116,14 +116,9 @@ jobs:
           fi
           echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
 
-      - name: Update appVersion in Chart.yaml
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq -i '.appVersion = "${{ env.DOCKER_TAG }}"' charts/*/Chart.yaml
-
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' }}
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.DOCKER_TAG }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
