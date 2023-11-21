@@ -55,6 +55,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
@@ -130,9 +132,7 @@ jobs:
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git add charts/*/Chart.yaml
           git commit -m "Update appVersion to ${{ env.DOCKER_TAG }}"
-          git push origin "${GITHUB_REF_NAME}" # test purpose
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_GITHUB_TOKEN }}
+          git push origin "${GITHUB_REF_NAME}" 
 
 
 
