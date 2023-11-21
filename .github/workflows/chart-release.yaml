@@ -105,32 +105,56 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-      - name: Determine Docker Tag
+
+      # Extract part of the branch name
+      - name: Extract Branch Tag
+        id: extract-branch-tag
         run: |
-          if [[ $GITHUB_REF_NAME =~ ^([[:alpha:]]+?-[[:digit:]]+) ]]; then
-            DOCKER_TAG="${BASH_REMATCH[1]}"
-          elif [[ "$GITHUB_REF_NAME" == "main" ]]; then
-            DOCKER_TAG="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
+          regex='^([[:alpha:]]+?-[[:digit:]]+)'
+          if [[ $GITHUB_REF_NAME =~ $regex ]]; then
+            echo "extracted_tag=${BASH_REMATCH[1]}" >> $GITHUB_ENV
           else
-            DOCKER_TAG="latest"
-          fi
-          echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+            echo "extracted_tag=" >> $GITHUB_ENV
 
-      - name: Prepare Helm Chart
-        run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.DOCKER_TAG }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
-          cd helm-charts-registry
-          if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
-          tar -xzf ${{ inputs.chart_name }}*.tgz
-          mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
-
-      - name: Push Helm Chart
-        env:
-          GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+      # Set DOCKER_TAG based on the comparison
+      - name: Set Docker Tag
         run: |
-          git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
-          git config --global user.name "${{ inputs.chart_name }}-gha"
-          cd helm-charts-registry/automation
-          git add ${{ inputs.chart_name }}
-          git commit -m "${{ inputs.chart_name }}"
-          git push origin main  
+          if [[ "${{ inputs.tag_generation }}" == "$extracted_tag" ]]; then
+            echo "DOCKER_TAG=${{ inputs.tag_generation }}" >> $GITHUB_ENV
+          elif [[ "$GITHUB_REF_NAME" == "main" ]]; then
+            echo "DOCKER_TAG=sha-$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAG=latest" >> $GITHUB_ENV
+
+
+      #- name: Determine Docker Tag
+      #  run: |
+      #     [[ $GITHUB_REF_NAME =~ ^([[:alpha:]]+?-[[:digit:]]+) ]; 
+      #    then
+      #      DOCKER_TAG="${BASH_REMATCH[1]}"
+      #    elif [[ "$GITHUB_REF_NAME" == "main" ]]; 
+      #    then
+      #      DOCKER_TAG="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
+      #    else
+      #      DOCKER_TAG="latest"
+      #    fi
+      #    echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+
+      #- name: Prepare Helm Chart
+      #  run:  |
+      #    helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.DOCKER_TAG }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
+      #    cd helm-charts-registry
+      #    if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
+      #    tar -xzf ${{ inputs.chart_name }}*.tgz
+      #    mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
+
+      #- name: Push Helm Chart
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+      #  run: |
+      #    git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
+      #    git config --global user.name "${{ inputs.chart_name }}-gha"
+      #    cd helm-charts-registry/automation
+      #    git add ${{ inputs.chart_name }}
+      #    git commit -m "${{ inputs.chart_name }}"
+      #    git push origin main  
