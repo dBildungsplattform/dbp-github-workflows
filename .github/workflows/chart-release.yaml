@@ -91,17 +91,19 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-
       - name: Determine Docker Tag
         run: |
-          if [[ "${{ inputs.tag_generation }}" == 'ticket_from_branch'; then
-            DOCKER_TAG="${{ inputs.tag_generation }}"
+          if [[ "${{ inputs.tag_generation }}" == 'ticket_from_branch' ]]; then
+            $GITHUB_REF_NAME =~ ^([[:alpha:]]+?-[[:digit:]]+)
+            DOCKER_TAG="${BASH_REMATCH[1]}"
           elif [[ "${{ inputs.tag_generation }}" == 'commit_hash' ]]; then
             DOCKER_TAG="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
           else
-            DOCKER_TAG="latest"
+            DOCKER_TAG='latest'
           fi
-            echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+          echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+
+        
         
 
 
