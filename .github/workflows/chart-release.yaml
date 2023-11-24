@@ -103,7 +103,7 @@ jobs:
             if [[ $GITHUB_REF_NAME =~ $regex ]]; then
               image_tag="${BASH_REMATCH[1]}"
             else
-              echo "::error::GITHUB_REF_NAME does not match the expected pattern for ticket_from_branch."
+            echo "::error::Couldn't extract ticket from branch $GITHUB_REF_NAME. The branch name should begin with a ticket (e.g. SPSH-1234-test-name)"
               exit 1
             fi
           elif [[ "${{ inputs.tag_generation }}" == 'commit_hash' ]]; then
