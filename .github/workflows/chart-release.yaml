@@ -32,6 +32,17 @@ on:
         description: "Replace placeholders before chart packaging. Defined as sed command (optional)."
         required: false
         default: ""
+      tag_generation:
+        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag, specified"
+        required: false
+        type: string
+        default: "ticket_from_branch"
+      image_tag:
+        type: string
+        description: "image tag (required if tag_generation: specified)"
+        required: false
+        
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -86,9 +97,26 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
+      - name: Determine Image Tag
+        run: |
+          if [[ "${{ inputs.tag_generation }}" == 'ticket_from_branch' ]]; then
+            regex='^([[:alpha:]]+?-[[:digit:]]+)'
+            if [[ $GITHUB_REF_NAME =~ $regex ]]; then
+              image_tag="${BASH_REMATCH[1]}"
+            else
+            echo "::error::Couldn't extract ticket from branch $GITHUB_REF_NAME. The branch name should begin with a ticket (e.g. SPSH-1234-test-name)"
+              exit 1
+            fi
+          elif [[ "${{ inputs.tag_generation }}" == 'commit_hash' ]]; then
+            image_tag="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
+          elif [[ "${{ inputs.tag_generation }}" == 'specified' ]]; then
+            image_tag="${{ inputs.image_tag }}"
+          fi
+          echo "image_tag=$image_tag" >> $GITHUB_ENV
+
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' }}
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
@@ -103,4 +131,4 @@ jobs:
           cd helm-charts-registry/automation
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
-          git push origin main
+          git push origin main  

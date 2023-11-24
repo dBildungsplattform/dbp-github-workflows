@@ -73,7 +73,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
-
       - name: Build image name and tags
         id: docker_meta_img
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 #v5.0.0
@@ -86,7 +85,6 @@ jobs:
             type=pep440,pattern={{version}},enable=${{ inputs.tag_generation == 'version_git_tag' }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
-
       - name: Login (GHCR)
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
         if: ${{ inputs.container_registry == 'ghcr.io' }}
@@ -94,7 +92,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         id: docker_build_push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #v5.0.0
@@ -104,7 +101,6 @@ jobs:
           push: true
           tags: ${{ steps.docker_meta_img.outputs.tags }}
           labels: ${{ steps.docker_meta_img.outputs.labels }}
-
   trivy_scan:
     name: Trivy scan for uploaded image
     # Wait for image upload
