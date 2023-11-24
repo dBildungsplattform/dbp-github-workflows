@@ -33,10 +33,15 @@ on:
         required: false
         default: ""
       tag_generation:
-        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
+        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag, specified"
         required: false
         type: string
         default: "ticket_from_branch"
+      image_tag:
+        type: string
+        description: "image tag (required if tag_generation: specified)"
+        required: false
+        
 
 jobs:
   release:
@@ -91,23 +96,26 @@ jobs:
         run: |
           echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
 
-      - name: Determine Docker Tag
+      - name: Determine Image Tag
         run: |
           if [[ "${{ inputs.tag_generation }}" == 'ticket_from_branch' ]]; then
-          regex='^([[:alpha:]]+?-[[:digit:]]+)'
-          if [[ $GITHUB_REF_NAME =~ $regex ]]; then
-            DOCKER_TAG="${BASH_REMATCH[1]}"
-          fi
+            regex='^([[:alpha:]]+?-[[:digit:]]+)'
+            if [[ $GITHUB_REF_NAME =~ $regex ]]; then
+              image_tag="${BASH_REMATCH[1]}"
+            else
+              echo "::error::GITHUB_REF_NAME does not match the expected pattern for ticket_from_branch."
+              exit 1
+            fi
           elif [[ "${{ inputs.tag_generation }}" == 'commit_hash' ]]; then
-            DOCKER_TAG="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
-          else
-            DOCKER_TAG='latest'
+            image_tag="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
+          elif [[ "${{ inputs.tag_generation }}" == 'specified' ]]; then
+            image_tag="${{ inputs.image_tag }}"
           fi
-          echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+          echo "image_tag=$image_tag" >> $GITHUB_ENV
 
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.DOCKER_TAG }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
