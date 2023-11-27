@@ -83,7 +83,7 @@ jobs:
           short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
           regex='^([[:alpha:]]+?-[[:digit:]]+)'
           [[ $GITHUB_REF_NAME =~ $regex ]]
-          lowercase_ticket=$(echo {BASH_REMATCH[1]} | tr [A-Z] [a-z])
+          lowercase_ticket=$(echo ${BASH_REMATCH[1]} | tr [A-Z] [a-z])
           echo "chart_version=0.0.0-${lowercase_ticket}-${short_sha}" >> $GITHUB_ENV
 
       - name: Use commit hash as version
