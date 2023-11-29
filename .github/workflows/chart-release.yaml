@@ -4,6 +4,8 @@
 # version_generation: "specified" The version specified with chart_version is used
 # version_generation: "ticket_from_branch_short_hash" The version is generated as 0.0.0-<ticket from branch name>-<short commit hash>
 # version_generation: "short_hash" The version is generated as 0.0.1-<short commit hash>
+# version_generation: "ticket_from_branch_timestamp" The version is generated as 0.0.0-<ticket from branch name>-<timestamp with format YYYYMMDD-HHMM>
+# version_generation: "timestamp" The version is generated as 0.0.1-<timestamp with format YYYYMMDD-HHMM>
 name: Release helm chart
 
 on:
@@ -20,7 +22,7 @@ on:
         required: true
       version_generation:
         type: string
-        description: "How the chart version gets generated: chart_yaml (default), specified, ticket_from_branch_short_hash, short_hash"
+        description: "How the chart version gets generated: chart_yaml (default), specified, ticket_from_branch_short_hash, short_hash, ticket_from_branch_timestamp, timestamp"
         required: false
         default: "chart_yaml"
       chart_version:
@@ -85,12 +87,27 @@ jobs:
           [[ $GITHUB_REF_NAME =~ $regex ]]
           lowercase_ticket=$(echo ${BASH_REMATCH[1]} | tr [A-Z] [a-z])
           echo "chart_version=0.0.0-${lowercase_ticket}-${short_sha}" >> $GITHUB_ENV
-
+  
       - name: Use commit hash as version
         if: ${{ inputs.version_generation == 'short_hash' }}
         run: |
           short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
-          echo "chart_version=0.0.1-${short_sha}" >> $GITHUB_ENV
+          echo "chart_version=0.0.1-${short_sha}" >> $GITHUB_ENV  
+      
+      - name: Use ticket and timestamp as version
+        if: ${{ inputs.version_generation == 'ticket_from_branch_timestamp' }}
+        run: |
+          timestamp=`echo $(date +'%Y%m%d-%H%M')`
+          regex='^([[:alpha:]]+?-[[:digit:]]+)'
+          [[ $GITHUB_REF_NAME =~ $regex ]]
+          lowercase_ticket=$(echo ${BASH_REMATCH[1]} | tr [A-Z] [a-z])
+          echo "chart_version=0.0.0-${lowercase_ticket}-${timestamp}" >> $GITHUB_ENV
+
+      - name: Use timestamp as version
+        if: ${{ inputs.version_generation == 'timestamp' }}
+        run: |
+          timestamp=`echo $(date +'%Y%m%d-%H%M')`
+          echo "chart_version=0.0.1-${timestamp}" >> $GITHUB_ENV
 
       - name: Use specified chart version
         if: ${{ inputs.version_generation == 'specified' }}
