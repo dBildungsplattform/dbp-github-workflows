@@ -1,9 +1,9 @@
 # Builds and uploads a docker image and scans it with trivy (optional)
 # Trivy scan can be disabled
 # Image tag options: 
-# tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (eg. OPS-123-testing -> OPS-123)
-# tag_generation: "commit_hash" Short hash of the commit is used as tag
-# tag_generation: "version_git_tag" Git tag with version is used as tag
+# image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (eg. OPS-123-testing -> OPS-123)
+# image_tag_generation: "commit_hash" Short hash of the commit is used as tag
+# image_tag_generation: "version_git_tag" Git tag with version is used as tag
 # add_latest_tag: true/false "latest" gets added as additiontal image tag
  
 name: Publish image (and run Trivy)
@@ -29,7 +29,7 @@ on:
         required: false
         type: boolean
         default: false
-      tag_generation:
+      image_tag_generation:
         description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
         required: false
         type: string
@@ -79,10 +79,10 @@ jobs:
         with:
           images: ${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}
           tags: |
-            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
-            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.tag_generation == 'ticket_from_branch' }}
-            type=sha,enable=${{ inputs.tag_generation == 'commit_hash' }}
-            type=pep440,pattern={{version}},enable=${{ inputs.tag_generation == 'version_git_tag' }}
+            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
+            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
+            type=sha,enable=${{ inputs.image_tag_generation == 'commit_hash' }}
+            type=pep440,pattern={{version}},enable=${{ inputs.image_tag_generation == 'version_git_tag' }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
       - name: Login (GHCR)
