@@ -1,11 +1,11 @@
 # Packages the helm chart and pushes it to the helm-charts-registry where it gets released
 # Options for generated helm chart versions:
-# version_generation: "chart_yaml" The version specified in the Chart.yaml is used
-# version_generation: "specified" The version specified with chart_version is used
-# version_generation: "ticket_from_branch_short_hash" The version is generated as 0.0.0-<ticket from branch name>-<short commit hash>
-# version_generation: "short_hash" The version is generated as 0.0.1-<short commit hash>
-# version_generation: "ticket_from_branch_timestamp" The version is generated as 0.0.0-<ticket from branch name>-<timestamp with format YYYYMMDD-HHMM>
-# version_generation: "timestamp" The version is generated as 0.0.1-<timestamp with format YYYYMMDD-HHMM>
+# helm_chart_version_generation: "chart_yaml" The version specified in the Chart.yaml is used
+# helm_chart_version_generation: "specified" The version specified with chart_version is used
+# helm_chart_version_generation: "ticket_from_branch_short_hash" The version is generated as 0.0.0-<ticket from branch name>-<short commit hash>
+# helm_chart_version_generation: "short_hash" The version is generated as 0.0.1-<short commit hash>
+# helm_chart_version_generation: "ticket_from_branch_timestamp" The version is generated as 0.0.0-<ticket from branch name>-<timestamp with format YYYYMMDD-HHMM>
+# helm_chart_version_generation: "timestamp" The version is generated as 0.0.1-<timestamp with format YYYYMMDD-HHMM>
 name: Release helm chart
 
 on:
@@ -20,28 +20,28 @@ on:
         type: string
         description: "Name of the Chart"
         required: true
-      version_generation:
+      helm_chart_version_generation:
         type: string
         description: "How the chart version gets generated: chart_yaml (default), specified, ticket_from_branch_short_hash, short_hash, ticket_from_branch_timestamp, timestamp"
         required: false
         default: "chart_yaml"
-      chart_version:
+      helm_chart_version:
         type: string
-        description: "Chart version (required if version_generation: specified)"
+        description: "Chart version (required if helm_chart_version_generation: specified)"
         required: false
       substitute_placeholders:
         type: string
         description: "Replace placeholders before chart packaging. Defined as sed command (optional)."
         required: false
         default: ""
-      tag_generation:
+      image_tag_generation:
         description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag, specified"
         required: false
         type: string
         default: "ticket_from_branch"
       image_tag:
         type: string
-        description: "image tag (required if tag_generation: specified)"
+        description: "image tag (required if image_tag_generation: specified)"
         required: false
         
 
@@ -80,7 +80,7 @@ jobs:
           find ${{ inputs.chart_path }}/ -type f -exec sed -i -e '${{ inputs.substitute_placeholders }}' {} \;
 
       - name: Use ticket and commit hash as version
-        if: ${{ inputs.version_generation == 'ticket_from_branch_short_hash' }}
+        if: ${{ inputs.helm_chart_version_generation == 'ticket_from_branch_short_hash' }}
         run: |
           short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
           regex='^([[:alpha:]]+?-[[:digit:]]+)'
@@ -89,13 +89,13 @@ jobs:
           echo "chart_version=0.0.0-${lowercase_ticket}-${short_sha}" >> $GITHUB_ENV
   
       - name: Use commit hash as version
-        if: ${{ inputs.version_generation == 'short_hash' }}
+        if: ${{ inputs.helm_chart_version_generation == 'short_hash' }}
         run: |
           short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
           echo "chart_version=0.0.1-${short_sha}" >> $GITHUB_ENV  
       
       - name: Use ticket and timestamp as version
-        if: ${{ inputs.version_generation == 'ticket_from_branch_timestamp' }}
+        if: ${{ inputs.helm_chart_version_generation == 'ticket_from_branch_timestamp' }}
         run: |
           timestamp=`echo $(date +'%Y%m%d-%H%M')`
           regex='^([[:alpha:]]+?-[[:digit:]]+)'
@@ -104,19 +104,19 @@ jobs:
           echo "chart_version=0.0.0-${lowercase_ticket}-${timestamp}" >> $GITHUB_ENV
 
       - name: Use timestamp as version
-        if: ${{ inputs.version_generation == 'timestamp' }}
+        if: ${{ inputs.helm_chart_version_generation == 'timestamp' }}
         run: |
           timestamp=`echo $(date +'%Y%m%d-%H%M')`
           echo "chart_version=0.0.1-${timestamp}" >> $GITHUB_ENV
 
       - name: Use specified chart version
-        if: ${{ inputs.version_generation == 'specified' }}
+        if: ${{ inputs.helm_chart_version_generation == 'specified' }}
         run: |
-          echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_ENV
+          echo "chart_version=${{ inputs.helm_chart_version }}" >> $GITHUB_ENV
 
       - name: Determine Image Tag
         run: |
-          if [[ "${{ inputs.tag_generation }}" == 'ticket_from_branch' ]]; then
+          if [[ "${{ inputs.image_tag_generation }}" == 'ticket_from_branch' ]]; then
             regex='^([[:alpha:]]+?-[[:digit:]]+)'
             if [[ $GITHUB_REF_NAME =~ $regex ]]; then
               image_tag="${BASH_REMATCH[1]}"
@@ -124,16 +124,16 @@ jobs:
             echo "::error::Couldn't extract ticket from branch $GITHUB_REF_NAME. The branch name should begin with a ticket (e.g. SPSH-1234-test-name)"
               exit 1
             fi
-          elif [[ "${{ inputs.tag_generation }}" == 'commit_hash' ]]; then
+          elif [[ "${{ inputs.image_tag_generation }}" == 'commit_hash' ]]; then
             image_tag="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
-          elif [[ "${{ inputs.tag_generation }}" == 'specified' ]]; then
+          elif [[ "${{ inputs.image_tag_generation }}" == 'specified' ]]; then
             image_tag="${{ inputs.image_tag }}"
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
 
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
