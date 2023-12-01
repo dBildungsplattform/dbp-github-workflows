@@ -95,7 +95,7 @@ jobs:
           echo "chart_version=0.0.1-${short_sha}" >> $GITHUB_ENV  
       
       - name: Use ticket and timestamp as version
-        if: ${{ inputs.version_generation == 'ticket_from_branch_timestamp' }}
+        if: ${{ inputs.helm_chart_version_generation == 'ticket_from_branch_timestamp' }}
         run: |
           timestamp=`echo $(date +'%Y%m%d-%H%M')`
           regex='^([[:alpha:]]+?-[[:digit:]]+)'
@@ -104,7 +104,7 @@ jobs:
           echo "chart_version=0.0.0-${lowercase_ticket}-${timestamp}" >> $GITHUB_ENV
 
       - name: Use timestamp as version
-        if: ${{ inputs.version_generation == 'timestamp' }}
+        if: ${{ inputs.helm_chart_version_generation == 'timestamp' }}
         run: |
           timestamp=`echo $(date +'%Y%m%d-%H%M')`
           echo "chart_version=0.0.1-${timestamp}" >> $GITHUB_ENV
