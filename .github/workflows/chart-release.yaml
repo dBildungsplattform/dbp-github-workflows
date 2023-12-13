@@ -125,7 +125,7 @@ jobs:
               exit 1
             fi
           elif [[ "${{ inputs.image_tag_generation }}" == 'commit_hash' ]]; then
-            image_tag="sha-$(echo ${GITHUB_SHA} | cut -c1-8)"
+            image_tag="sha-$(echo ${GITHUB_SHA} | cut -c1-7)"
           elif [[ "${{ inputs.image_tag_generation }}" == 'specified' ]]; then
             image_tag="${{ inputs.image_tag }}"
           fi
