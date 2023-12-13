@@ -82,7 +82,7 @@ jobs:
       - name: Use ticket and commit hash as version
         if: ${{ inputs.helm_chart_version_generation == 'ticket_from_branch_short_hash' }}
         run: |
-          short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
+          short_sha=`echo ${GITHUB_SHA} | cut -c1-7`
           regex='^([[:alpha:]]+?-[[:digit:]]+)'
           [[ $GITHUB_REF_NAME =~ $regex ]]
           lowercase_ticket=$(echo ${BASH_REMATCH[1]} | tr [A-Z] [a-z])
@@ -91,7 +91,7 @@ jobs:
       - name: Use commit hash as version
         if: ${{ inputs.helm_chart_version_generation == 'short_hash' }}
         run: |
-          short_sha=`echo ${GITHUB_SHA} | cut -c1-8`
+          short_sha=`echo ${GITHUB_SHA} | cut -c1-7`
           echo "chart_version=0.0.1-${short_sha}" >> $GITHUB_ENV  
       
       - name: Use ticket and timestamp as version
