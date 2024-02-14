@@ -12,11 +12,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      
+      - name: Fetch all tags
+        run: git fetch --tags
 
-      - name: Get current version
+      - name: Get current version or set default
         run: |
           git fetch --tags
-          echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          echo "VERSION=$(git describe --tags --abbrev=0 --always)" >> $GITHUB_ENV
 
       - name: Determine version type
         run: |
