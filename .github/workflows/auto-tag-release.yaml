@@ -24,7 +24,7 @@ jobs:
       - name: Determine version type
         run: |
           version=${{ env.VERSION }}
-          major=$(echo "$version" | cut -d '.' -f 1 | sed 's/v//')
+          major=$(echo "$version" | cut -d '.' -f 1 )
           minor=$(echo "$version" | cut -d '.' -f 2)
           patch=$(echo "$version" | cut -d '.' -f 3)
 
@@ -38,7 +38,7 @@ jobs:
           echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
 
       - name: Create new tag
-        if: github.ref == 'refs/heads/dbp-557-implement-semV'
+        if: ${{ github.ref == 'refs/heads/dbp-557-implement-semV' }} # main
         uses: anothrNick/github-tag-action@a2c70ae13a881faf2b4953baaa9e49731997ab36
         with:
           tag: ${{ env.NEW_VERSION }}
