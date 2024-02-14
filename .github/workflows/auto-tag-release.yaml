@@ -1,4 +1,5 @@
-name: Auto Tag Release
+
+name: Versioning
 
 on:
   push:
@@ -6,21 +7,48 @@ on:
       - dbp-557-implement-semV
 
 jobs:
-  autotag:
+  version:
     runs-on: ubuntu-latest
 
-    
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      
-      - name: Autotag
-        uses: phish108/autotag-action@6dcf3d78f00f1a55df67a02428af3f1b862da6dc
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          bump: major
-          with-v: "false" 
-      - name: Create tag
-        run: git tag ${{ steps.autotag.outputs.new-tag }} && git push origin ${{ steps.autotag.outputs.new-tag }}
+          python-version: '3.x'
+
+      - name: Get current version
+        id: get_version
+        run: |
+          git fetch --tags
+          echo ::set-output name=version::$(git describe --tags --abbrev=0)
+
+      - name: Determine version type
+        id: bump_version
+        run: |
+          version=${{ steps.get_version.outputs.version }}
+          major=$(echo "$version" | cut -d '.' -f 1 | sed 's/v//')
+          minor=$(echo "$version" | cut -d '.' -f 2)
+          patch=$(echo "$version" | cut -d '.' -f 3)
+
+          # Annahme: Anpassung basierend auf Commit-Nachrichten oder anderem Trigger
+          # Dies ist ein einfaches Beispiel und muss möglicherweise angepasst werden
+          if git log -1 --pretty=%B | grep -q '#major'; then
+            new_version="v$((major+1)).0.0"
+          elif git log -1 --pretty=%B | grep -q '#minor'; then
+            new_version="v$major.$((minor+1)).0"
+          else
+            new_version="v$major.$minor.$((patch+1))"
+          fi
+          echo "::set-output name=version::$new_version"
+
+      - name: Create new tag
+        if: github.ref == 'refs/heads/dbp-557-implement-semV'
+        uses: anothrNick/github-tag-action@v1.12.2
+        with:
+          tag: ${{ steps.bump_version.outputs.version }}
+          message: 'New version ${{ steps.bump_version.outputs.version }}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
