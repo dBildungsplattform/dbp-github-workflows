@@ -1,0 +1,22 @@
+name: Auto Tag Release
+
+on:
+  push:
+    branches:
+      - dbp-557-implement-semV
+
+jobs:
+  autotag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      
+      - name: Autotag
+        uses: phish108/autotag-action@6dcf3d78f00f1a55df67a02428af3f1b862da6dc
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          with-v: "false" 
