@@ -20,3 +20,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           bump: major
           with-v: "false" 
+      - name: Create tag
+        run: git tag ${{ steps.autotag.outputs.new-tag }} && git push origin ${{ steps.autotag.outputs.new-tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
