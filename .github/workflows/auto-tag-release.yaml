@@ -46,7 +46,7 @@ jobs:
 
       - name: Create new tag
         if: github.ref == 'refs/heads/dbp-557-implement-semV'
-        uses: anothrNick/github-tag-action@v1.12.2
+        uses: anothrNick/github-tag-action@a2c70ae13a881faf2b4953baaa9e49731997ab36
         with:
           tag: ${{ steps.bump_version.outputs.version }}
           message: 'New version ${{ steps.bump_version.outputs.version }}'
