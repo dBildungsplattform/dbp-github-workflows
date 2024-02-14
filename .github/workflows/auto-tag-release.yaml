@@ -3,7 +3,7 @@ name: Versioning
 on:
   push:
     branches:
-      - dbp-557-implement-semV
+      - dbp-557-implement-semV # main
 
 jobs:
   version:
@@ -11,15 +11,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       
-      - name: Fetch all tags
-        run: git fetch --tags
+      #- name: Fetch all tags
+      #  run: git fetch --tags
 
-      - name: Get current version or set default
+      - name: Get current version  #--abbrev=0 ----Commit-Hash 
         run: |
           git fetch --tags
-          echo "VERSION=$(git describe --tags --abbrev=0 --always)" >> $GITHUB_ENV
+          echo "VERSION=$(git describe --tags  --always)" >> $GITHUB_ENV  
 
       - name: Determine version type
         run: |
