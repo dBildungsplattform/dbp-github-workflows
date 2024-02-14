@@ -18,4 +18,5 @@ jobs:
         uses: phish108/autotag-action@6dcf3d78f00f1a55df67a02428af3f1b862da6dc
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          bump: major
           with-v: "false" 
