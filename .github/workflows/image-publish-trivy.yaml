@@ -60,7 +60,7 @@ on:
         default: ""
         type: string
       target:
-        description: "If defined you set the target build stage to build."
+        description: "If defined you specify a build stage to stop at when building a multi-stage Dockerfile"
         required: false
         default: ""
         type: string
