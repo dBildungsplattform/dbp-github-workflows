@@ -23,3 +23,13 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           major_version_tag_only: false #   true wenn nur Major-Tags wird aktualisiert oder erstellt
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract major and minor versions
+        id: version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          MAJOR=$(echo $TAG | cut -d. -f1)
+          MINOR=$MAJOR.$(echo $TAG | cut -d. -f2)
+          echo "::set-output name=major::$MAJOR"
+          echo "::set-output name=minor::$MINOR"
+          echo "::set-output name=tag::$TAG"
