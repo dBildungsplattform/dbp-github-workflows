@@ -60,7 +60,7 @@ on:
         default: ""
         type: string
       target:
-        description: "If defined you can set which target should be used in the Dockerfile"
+        description: "If defined you set the target build stage to build."
         required: false
         default: ""
         type: string
