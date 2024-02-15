@@ -21,6 +21,5 @@ jobs:
         uses: rickstaa/action-update-semver@77e8cb0f3cd805b38ffe25c07236336e05dcb4da
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          major_version_tag_only: true #   true wenn nur Major-Tags wird aktualisiert oder erstellt
+          major_version_tag_only: false #   true wenn nur Major-Tags wird aktualisiert oder erstellt
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          
