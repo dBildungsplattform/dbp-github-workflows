@@ -13,28 +13,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       
-      #- name: Fetch all tags
-      #  run: git fetch --tags
-
-      - name: Get current version  #--abbrev=0 ----Commit-Hash 
+      - name: Get current version
         run: |
           git fetch --tags
-          echo "VERSION=$(git describe --tags  --always)" >> $GITHUB_ENV  
+          version=$(git describe --tags --always)
+          if [[ "$version" =~ ^[0-9]+$ ]];
+            echo "VERSION=$version" >> $GITHUB_ENV
+          else
+            echo "VERSION=1" >> $GITHUB_ENV
+          fi
 
       - name: Determine version type
         run: |
           version=${{ env.VERSION }}
-          major=$(echo "$version" | cut -d '.' -f 1 )
-          minor=$(echo "$version" | cut -d '.' -f 2)
-          patch=$(echo "$version" | cut -d '.' -f 3)
-
-          if git log -1 --pretty=%B | grep -q '#major'; then
-            new_version="v$((major+1)).0.0"
-          elif git log -1 --pretty=%B | grep -q '#minor'; then
-            new_version="v$major.$((minor+1)).0"
-          else
-            new_version="v$major.$minor.$((patch+1))"
-          fi
+          new_version=$(($version + 1))
           echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
 
       - name: Create new tag
