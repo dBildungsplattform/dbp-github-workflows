@@ -2,8 +2,8 @@ name: Update Semver Tags
 
 on:
   push:
-    branches:  # TODO: musst be tag
-      - dbp-557-implement-semV
+    tags:
+      - '*.*.*'
 
 jobs:
   update-semver-tags:
@@ -21,5 +21,5 @@ jobs:
         uses: rickstaa/action-update-semver@77e8cb0f3cd805b38ffe25c07236336e05dcb4da
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          major_version_tag_only: true #  nur Major-Tags aktualisieren möchten.
-          move_patch_tag: true # Aktiviert die Verschiebung des Patch-Tags zum neuesten Commit.
+          major_version_tag_only: true #   true wenn nur Major-Tags wird aktualisiert oder erstellt
+          
