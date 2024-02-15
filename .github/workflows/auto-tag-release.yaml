@@ -1,39 +1,25 @@
-name: Versioning
+name: Update Semver Tags
 
 on:
   push:
-    branches:
-      - dbp-557-implement-semV # main
+    branches:  # TODO: musst be tag
+      - dbp-557-implement-semV
 
 jobs:
-  version:
+  update-semver-tags:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       
-      - name: Get current version
-        run: |
-          git fetch --tags
-          version=$(git describe --tags --always)
-          if [[ "$version" =~ ^[0-9]+$ ]];
-            echo "VERSION=$version" >> $GITHUB_ENV
-          else
-            echo "VERSION=1" >> $GITHUB_ENV
-          fi
-
-      - name: Determine version type
-        run: |
-          version=${{ env.VERSION }}
-          new_version=$(($version + 1))
-          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
-
-      - name: Create new tag
-        if: ${{ github.ref == 'refs/heads/dbp-557-implement-semV' }} # main
-        uses: anothrNick/github-tag-action@a2c70ae13a881faf2b4953baaa9e49731997ab36
+      - name: Setup node
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d #v3.8.1
         with:
-          tag: ${{ env.NEW_VERSION }}
-          message: 'New version ${{ env.NEW_VERSION }}'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Update Semver
+        uses: rickstaa/action-update-semver@77e8cb0f3cd805b38ffe25c07236336e05dcb4da
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          major_version_tag_only: true #  nur Major-Tags aktualisieren möchten.
+          move_patch_tag: true # Aktiviert die Verschiebung des Patch-Tags zum neuesten Commit.
