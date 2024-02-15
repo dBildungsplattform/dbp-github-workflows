@@ -22,6 +22,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           major_version_tag_only: true #   true wenn nur Major-Tags wird aktualisiert oder erstellt
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
           
