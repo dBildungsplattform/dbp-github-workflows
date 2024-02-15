@@ -22,5 +22,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           major_version_tag_only: false #   true wenn nur Major-Tags wird aktualisiert oder erstellt
-          move_patch_tag: true 
+          move_patch_tag: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
