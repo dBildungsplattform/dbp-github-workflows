@@ -59,7 +59,11 @@ on:
         required: false
         default: ""
         type: string
-
+      target:
+        description: "If defined you specify a build stage to stop at when building a multi-stage Dockerfile"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   build_and_upload_image:
@@ -101,6 +105,7 @@ jobs:
           push: true
           tags: ${{ steps.docker_meta_img.outputs.tags }}
           labels: ${{ steps.docker_meta_img.outputs.labels }}
+          target: ${{ inputs.target }}
   trivy_scan:
     name: Trivy scan for uploaded image
     # Wait for image upload
