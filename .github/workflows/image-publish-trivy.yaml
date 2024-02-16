@@ -59,7 +59,11 @@ on:
         required: false
         default: ""
         type: string
-
+      target:
+        description: "If defined you specify a build stage to stop at when building a multi-stage Dockerfile"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   build_and_upload_image:
@@ -75,7 +79,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       - name: Build image name and tags
         id: docker_meta_img
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 #v5.0.0
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 #v5.5.1
         with:
           images: ${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}
           tags: |
@@ -94,13 +98,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         id: docker_build_push
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 #v5.0.0
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 #v5.1.0
         with:
           context: ${{ inputs.context }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.docker_meta_img.outputs.tags }}
           labels: ${{ steps.docker_meta_img.outputs.labels }}
+          target: ${{ inputs.target }}
   trivy_scan:
     name: Trivy scan for uploaded image
     # Wait for image upload
