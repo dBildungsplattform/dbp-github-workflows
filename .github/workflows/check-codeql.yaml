@@ -22,6 +22,9 @@ jobs:
         with:
           languages: javascript
 
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
+
       - name: Perform analysis
         uses: github/codeql-action/analyze@65c74964a9ed8c44ed9f19d4bbc5757a6a8e9ab9 #v2.16.1
         with:
