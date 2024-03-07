@@ -38,7 +38,7 @@ jobs:
     name: "Linting"
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-lint.yaml@5
     with:
-      node_version: "{{ inputs.node_version }}"
+      node_version: "${{ inputs.node_version }}"
     permissions:
       contents: read
 
@@ -46,8 +46,8 @@ jobs:
     name: "Tests and Sonarcloud"
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-test-sonarcloud.yaml@5
     with:
-      node_version: "{{ inputs.node_version }}"
-      deploy_stage: "{{ inputs.deploy_stage }}"
+      node_version: "${{ inputs.node_version }}"
+      deploy_stage: "${{ inputs.deploy_stage }}"
     permissions:
       contents: read
     secrets: inherit
@@ -64,9 +64,9 @@ jobs:
       contents: read
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/image-publish-trivy.yaml@5
     with:
-      image_name: "{{ inputs.image_name }}"
+      image_name: "${{ inputs.image_name }}"
       run_trivy_scan: true
-      image_tag_generation: "{{ inputs.release_tag }}"
+      image_tag_generation: "${{ inputs.release_tag }}"
       container_registry: "ghcr.io"
       fail_on_vulnerabilites: true
       report_location: "Dockerfile"
@@ -82,8 +82,8 @@ jobs:
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@5
     secrets: inherit
     with:
-      chart_name: "{{ inputs.helm_chart_name }}"
+      chart_name: "${{ inputs.helm_chart_name }}"
       helm_chart_version_generation: specified 
       image_tag_generation: specified 
-      helm_chart_version: "{{ inputs.release_tag }}"
-      image_tag: "{{ inputs.release_tag }}"
+      helm_chart_version: "${{ inputs.release_tag }}"
+      image_tag: "${{ inputs.release_tag }}"
