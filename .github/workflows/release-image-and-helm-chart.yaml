@@ -3,26 +3,27 @@ on:
   workflow_call:
     inputs:
       release_tag:
+        type: string
         description: "Provide the release tag"
         required: true
-        type: string
       image_name:
+        type: string
         description: "Proide Image name"
         required: true
-        type: string
       helm_chart_name:
+        type: string
         description: "Provide Helm Chart name"
         required: true
-        type: string
       deploy_stage:
-        description: "Provide Deploy Stage"
-        required: true
         type: string
+        description: "Provide Deploy Stage"
+        required: false
+        default: ""
       node_version:
+        type: string
         description: "Provide Node Version"
         required: false
         default: '18'
-        type: string
 
 jobs:
   # GHRC Image
@@ -66,7 +67,7 @@ jobs:
     with:
       image_name: "${{ inputs.image_name }}"
       run_trivy_scan: true
-      image_tag_generation: "${{ inputs.release_tag }}"
+      image_tag_generation: version_git_tag
       container_registry: "ghcr.io"
       fail_on_vulnerabilites: true
       report_location: "Dockerfile"
