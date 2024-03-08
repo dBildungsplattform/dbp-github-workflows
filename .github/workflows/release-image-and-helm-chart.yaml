@@ -8,7 +8,7 @@ on:
         required: true
       image_name:
         type: string
-        description: "Proide Image name"
+        description: "Provide Image name"
         required: true
       helm_chart_name:
         type: string
