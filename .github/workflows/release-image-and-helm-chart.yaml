@@ -14,16 +14,21 @@ on:
         type: string
         description: "Provide Helm Chart name"
         required: true
-      deploy_stage:
-        type: string
-        description: "Provide Deploy Stage"
+      node_project:
+        type: bool
+        description: "Node Image? If yes set to 'true'. Default: false"
         required: false
-        default: ""
+        default: False
       node_version:
         type: string
-        description: "Provide Node Version"
+        description: "Provide Node Version. Default: 18"
         required: false
         default: '18'
+      deploy_stage:
+        type: string
+        description: "Provide Deploy Stage. Default: empty"
+        required: false
+        default: ""
 
 jobs:
   # GHRC Image
@@ -37,6 +42,7 @@ jobs:
 
   nest_lint:
     name: "Linting"
+    if: ${{ inputs.node_project == 'true' }}
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-lint.yaml@5
     with:
       node_version: "${{ inputs.node_version }}"
@@ -45,6 +51,7 @@ jobs:
 
   tests_and_sonarcloud:
     name: "Tests and Sonarcloud"
+    if: ${{ inputs.node_project == 'true' }}
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-test-sonarcloud.yaml@5
     with:
       node_version: "${{ inputs.node_version }}"
