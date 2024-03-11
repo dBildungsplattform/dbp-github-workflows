@@ -42,7 +42,7 @@ jobs:
 
   nest_lint:
     name: "Linting"
-     "${{ inputs.node_project == 'true' }}"
+    if: "${{ inputs.node_project == 'true' }}"
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-lint.yaml@5
     with:
       node_version: "${{ inputs.node_version }}"
