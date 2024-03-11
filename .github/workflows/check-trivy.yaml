@@ -50,7 +50,7 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
-      
+        
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
