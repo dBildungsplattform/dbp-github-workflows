@@ -1,4 +1,4 @@
-name: Release Image and Helm Chart
+name: Release (node) Image and Helm Chart
 on:
   workflow_call:
     inputs:
@@ -14,11 +14,6 @@ on:
         type: string
         description: "Provide Helm Chart name"
         required: true
-      node_project:
-        type: string
-        description: "Is it a node image? If yes, set to true. Default: false"
-        required: false
-        default: 'false'
       node_version:
         type: string
         description: "Provide Node Version. Default: '18'"
@@ -42,7 +37,6 @@ jobs:
 
   nest_lint:
     name: "Linting"
-    if: "${{ inputs.node_project == 'true' }}"
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-lint.yaml@5
     with:
       node_version: "${{ inputs.node_version }}"
@@ -51,7 +45,6 @@ jobs:
 
   tests_and_sonarcloud:
     name: "Tests and Sonarcloud"
-    if: "${{ inputs.node_project == 'true' }}"
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-nest-test-sonarcloud.yaml@5
     with:
       node_version: "${{ inputs.node_version }}"
