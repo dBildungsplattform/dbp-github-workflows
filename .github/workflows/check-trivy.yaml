@@ -42,7 +42,7 @@ jobs:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@9ab158e8597f3b310480b9a69402b419bc03dbd5 #look it up
+        uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
           image-ref: ${{ steps.image_ref_lower.outputs.output }}
           format: "sarif"
@@ -50,7 +50,7 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
-        
+
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
