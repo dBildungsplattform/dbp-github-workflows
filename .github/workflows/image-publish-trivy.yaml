@@ -33,10 +33,13 @@ on:
         type: boolean
         default: false
       image_tag_generation:
-        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
+        description: "Generation of the image tag: ticket_from_branch, commit_hash or version_git_tag"
         required: false
         type: string
-        default: "ticket_from_branch"
+      custom_image_tag:
+        description: "Custom image tag. Required when tag generation is disabled."
+        required: false
+        type: string
       context:
         description: "Directory where the image is built, defaults to repository root"
         required: false
@@ -92,13 +95,16 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Check repository owners
+      - name: Check conditional inputs
         run: | 
           if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z "${{ inputs.dockerhub_repository_owner }}" ]]; then
             echo "Error: when pushing to dockerhub a repository owner is required."
             exit 1
           elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z "${{ inputs.quay_repository_owner }}" ]]; then
             echo "Error: when pushing to quay.io a repository owner is required."
+            exit 1
+          elif [[ -z "${{ inputs.image_tag_generation }}" && -z "${{ inputs.custom_image_tag }}" ]]; then
+            echo "Error: when image tag generation is disabled a custom image tag is required."
             exit 1
           fi
 
