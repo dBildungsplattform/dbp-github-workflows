@@ -36,10 +36,6 @@ on:
         description: "Generation of the image tag: ticket_from_branch, commit_hash or version_git_tag"
         required: false
         type: string
-      custom_image_tag:
-        description: "Custom image tag. Required when tag generation is disabled."
-        required: false
-        type: string
       context:
         description: "Directory where the image is built, defaults to repository root"
         required: false
@@ -103,9 +99,6 @@ jobs:
           elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z "${{ inputs.quay_repository_owner }}" ]]; then
             echo "Error: when pushing to quay.io a repository owner is required."
             exit 1
-          elif [[ -z "${{ inputs.image_tag_generation }}" && -z "${{ inputs.custom_image_tag }}" ]]; then
-            echo "Error: when image tag generation is disabled a custom image tag is required."
-            exit 1
           fi
 
       - name: Checkout Code
@@ -122,7 +115,7 @@ jobs:
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
-            type=match,pattern=\d.\d.\d,enable=${{ inputs.image_tag_generation == 'version_custom_git_tag' }}
+            type=match,pattern=\d.\d.\d,enable=${{ inputs.image_tag_generation == 'simple_version_git_tag' }}
             type=sha,enable=${{ inputs.image_tag_generation == 'commit_hash' }}
             type=pep440,pattern={{version}},enable=${{ inputs.image_tag_generation == 'version_git_tag' }}
           flavor: |
