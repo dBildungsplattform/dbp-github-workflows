@@ -122,6 +122,7 @@ jobs:
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
+            type=match,pattern=\d.\d.\d,enable=${{ inputs.image_tag_generation == 'version_custom_git_tag' }}
             type=sha,enable=${{ inputs.image_tag_generation == 'commit_hash' }}
             type=pep440,pattern={{version}},enable=${{ inputs.image_tag_generation == 'version_git_tag' }}
           flavor: |
