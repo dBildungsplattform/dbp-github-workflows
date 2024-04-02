@@ -116,9 +116,9 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 #v5.5.1
         with:
           images: | 
-            name="ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}",enable=${{ contains(inputs.container_registry, 'ghcr.io') }}
-            name="docker.io/${{ inputs.dockerhub_repository_owner }}/${{ inputs.image_name }}",enable=${{ contains(inputs.container_registry, 'dockerhub') }}
-            name="quay.io/${{ inputs.quay_repository_owner }}/${{ inputs.image_name }}",enable=${{ contains(inputs.container_registry, 'quay.io') }}
+            name=ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'ghcr.io') }}
+            name=docker.io/${{ inputs.dockerhub_repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'dockerhub') }}
+            name=quay.io/${{ inputs.quay_repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'quay.io') }}
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
