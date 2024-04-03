@@ -33,7 +33,7 @@ on:
         type: boolean
         default: false
       image_tag_generation:
-        description: "Generation of the image tag: ticket_from_branch, commit_hash or version_git_tag"
+        description: "Comma separated list of image tag generation strategies: ticket_from_branch, commit_hash, version_git_tag, mmp_semver_git_tag oder mm_semver_git_tag"
         required: false
         type: string
       context:
@@ -113,11 +113,11 @@ jobs:
             name=docker.io/${{ inputs.dockerhub_repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'dockerhub') }}
             name=quay.io/${{ inputs.quay_repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'quay.io') }}
           tags: |
-            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
-            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
-            type=match,pattern=\d.\d.\d,enable=${{ inputs.image_tag_generation == 'simple_version_git_tag' }}
+            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ contains(inputs.image_tag_generation, 'ticket_from_branch') }}
+            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ contains(inputs.image_tag_generation, 'ticket_from_branch') }}
+            type=semver,value={{tag}},pattern={{version}},enable=${{ contains(inputs.image_tag_generation, 'mmp_semver_git_tag') }}
             type=sha,enable=${{ inputs.image_tag_generation == 'commit_hash' }}
-            type=pep440,pattern={{version}},enable=${{ inputs.image_tag_generation == 'version_git_tag' }}
+            type=pep440,pattern={{version}},enable=${{ contains(inputs.image_tag_generation, 'version_git_tag') }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
       
