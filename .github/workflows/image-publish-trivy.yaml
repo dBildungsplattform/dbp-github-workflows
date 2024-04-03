@@ -160,32 +160,36 @@ jobs:
           labels: ${{ steps.docker_meta_img.outputs.labels }}
           target: ${{ inputs.target }}
   
+  pre_scan:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_trivy_scan }}
+    needs: build_and_upload_image
+    outputs:
+      registry_and_owner: ${{ steps.registry_and_owner.outputs.registry_and_owner }}
+    steps:
+      - name: Build registry and owner for image to scan
+        id: registry_and_owner
+        run: |
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
+            echo "registry_and_owner=docker.io/$dockerhub_repository_owner"
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} ]]; then
+            echo "registry_and_owner=quay.io/$quay_repository_owner"
+          elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
+            echo "registry_and_owner=ghcr.io/$github.repository_owner"
+          fi
+
   trivy_scan:
     name: Trivy scan for uploaded image
-    runs-on: ubuntu-latest
     # Wait for image upload
-    needs: build_and_upload_image
+    needs: [build_and_upload_image, pre_scan]
     if: ${{ inputs.run_trivy_scan }}
     permissions:
       packages: read
       security-events: write
-    steps:
-      - name: Build image ref
-        id: registry_and_owner
-        run: |
-          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
-            echo "registry_and_owner=docker.io/$dockerhub_repository_owner/"
-          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} ]]; then
-          echo "registry_and_owner=quay.io/$quay_repository_owner/"
-          elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
-          echo "registry_and_owner=ghcr.io/$github.repository_owner/"
-          fi
-
-      - name: Trivy scan
-        uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
-        with:
-          image_ref: '${{ steps.registry_and_owner.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
-          severity: ${{ inputs.trivy_severity }}
-          fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
-          ignore-unfixed: ${{ inputs.ignore-unfixed }}
-          report_location: ${{ inputs.report_location }}
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
+    with:
+      image_ref: '${{ needs.pre_build.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
+      severity: ${{ inputs.trivy_severity }}
+      fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
+      ignore-unfixed: ${{ inputs.ignore-unfixed }}
+      report_location: ${{ inputs.report_location }}
