@@ -1,5 +1,7 @@
-# Builds and uploads a docker image and scans it with trivy (optional)
+# Builds and uploads a docker image to multiple repositories and scans it with trivy (optional)
 # Trivy scan can be disabled
+# dockerhub_repository_owner: required when pushing to dockerhub
+# quay_repository_owner: required when pushing to quay.io 
 # Image tag options: 
 # image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (e.g. OPS-123-testing -> OPS-123)
 # image_tag_generation: "commit_hash" Short hash of the commit is used as tag
@@ -147,29 +149,43 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
       
-      # - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
-      #   id: docker_build_push
-      #   uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 #v5.1.0
-      #   with:
-      #     context: ${{ inputs.context }}
-      #     platforms: linux/amd64
-      #     push: true
-      #     tags: ${{ steps.docker_meta_img.outputs.tags }}
-      #     labels: ${{ steps.docker_meta_img.outputs.labels }}
-      #     target: ${{ inputs.target }}
+      - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
+        id: docker_build_push
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 #v5.1.0
+        with:
+          context: ${{ inputs.context }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.docker_meta_img.outputs.tags }}
+          labels: ${{ steps.docker_meta_img.outputs.labels }}
+          target: ${{ inputs.target }}
   
   trivy_scan:
     name: Trivy scan for uploaded image
+    runs-on: ubuntu-latest
     # Wait for image upload
     needs: build_and_upload_image
     if: ${{ inputs.run_trivy_scan }}
     permissions:
       packages: read
       security-events: write
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
-    with:
-      image_ref: '${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
-      severity: ${{ inputs.trivy_severity }}
-      fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
-      ignore-unfixed: ${{ inputs.ignore-unfixed }}
-      report_location: ${{ inputs.report_location }}
+    steps:
+      - name: Build image ref
+        id: registry_and_owner
+        run: |
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
+            echo "registry_and_owner=docker.io/$dockerhub_repository_owner/"
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} ]]; then
+          echo "registry_and_owner=quay.io/$quay_repository_owner/"
+          elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
+          echo "registry_and_owner=ghcr.io/$github.repository_owner/"
+          fi
+
+      - name: Trivy scan
+        uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
+        with:
+          image_ref: '${{ steps.registry_and_owner.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
+          severity: ${{ inputs.trivy_severity }}
+          fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
+          ignore-unfixed: ${{ inputs.ignore-unfixed }}
+          report_location: ${{ inputs.report_location }}
