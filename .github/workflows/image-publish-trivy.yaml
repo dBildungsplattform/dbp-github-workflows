@@ -1,9 +1,11 @@
 # Builds and uploads a docker image and scans it with trivy (optional)
 # Trivy scan can be disabled
 # Image tag options: 
-# image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (eg. OPS-123-testing -> OPS-123)
+# image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (e.g. OPS-123-testing -> OPS-123)
 # image_tag_generation: "commit_hash" Short hash of the commit is used as tag
 # image_tag_generation: "version_git_tag" Git tag with version is used as tag
+# image_tag_generation: "mmp_git_tag" The tag is derived from git tag with pattern "\d.\d.\d" as mayor.minor.patch version (e.g. infra-tools-1.3.6 -> 1.3.6)
+# image_tag_generation: "mm_git_tag" The tag is derived from git tag with pattern "\d.\d" as mayor.minor version (e.g. infra-tools-1.3.6 -> 1.3)
 # add_latest_tag: true/false "latest" gets added as additiontal image tag
  
 name: Publish image (and run Trivy)
@@ -33,7 +35,7 @@ on:
         type: boolean
         default: false
       image_tag_generation:
-        description: "Comma separated list of image tag generation strategies: ticket_from_branch, commit_hash, version_git_tag, mmp_semver_git_tag oder mm_semver_git_tag"
+        description: "Comma separated list of image tag generation strategies: ticket_from_branch, commit_hash, version_git_tag, mmp_git_tag or mm_git_tag"
         required: false
         type: string
       context:
