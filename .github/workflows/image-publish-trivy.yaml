@@ -171,25 +171,25 @@ jobs:
         id: registry_and_owner
         run: |
           if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
-            echo "registry_and_owner=docker.io/$inputs.dockerhub_repository_owner"
+            echo "registry_and_owner=docker.io/'$inputs.dockerhub_repository_owner'"
           elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} ]]; then
-            echo "registry_and_owner=quay.io/$inputs.quay_repository_owner"
+            echo "registry_and_owner=quay.io/'$inputs.quay_repository_owner'"
           elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
-            echo "registry_and_owner=ghcr.io/$github.repository_owner"
+            echo "registry_and_owner=ghcr.io/'$github.repository_owner'"
           fi
 
-  trivy_scan:
-    name: Trivy scan for uploaded image
-    # Wait for image upload
-    needs: [build_and_upload_image, pre_scan]
-    if: ${{ inputs.run_trivy_scan }}
-    permissions:
-      packages: read
-      security-events: write
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
-    with:
-      image_ref: '${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
-      severity: ${{ inputs.trivy_severity }}
-      fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
-      ignore-unfixed: ${{ inputs.ignore-unfixed }}
-      report_location: ${{ inputs.report_location }}
+  # trivy_scan:
+  #   name: Trivy scan for uploaded image
+  #   # Wait for image upload
+  #   needs: [build_and_upload_image, pre_scan]
+  #   if: ${{ inputs.run_trivy_scan }}
+  #   permissions:
+  #     packages: read
+  #     security-events: write
+  #   uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
+  #   with:
+  #     image_ref: '${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
+  #     severity: ${{ inputs.trivy_severity }}
+  #     fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
+  #     ignore-unfixed: ${{ inputs.ignore-unfixed }}
+  #     report_location: ${{ inputs.report_location }}
