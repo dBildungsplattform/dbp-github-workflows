@@ -1,9 +1,13 @@
-# Builds and uploads a docker image and scans it with trivy (optional)
+# Builds and uploads a docker image to multiple repositories and scans it with trivy (optional)
 # Trivy scan can be disabled
+# dockerhub_repository_owner: required when pushing to dockerhub
+# quay_repository_owner: required when pushing to quay.io 
 # Image tag options: 
-# image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (eg. OPS-123-testing -> OPS-123)
+# image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (e.g. OPS-123-testing -> OPS-123)
 # image_tag_generation: "commit_hash" Short hash of the commit is used as tag
 # image_tag_generation: "version_git_tag" Git tag with version is used as tag
+# image_tag_generation: "mmp_git_tag" The tag is derived from git tag with pattern "\d.\d.\d" as mayor.minor.patch version (e.g. infra-tools-1.3.6 -> 1.3.6)
+# image_tag_generation: "mm_git_tag" The tag is derived from git tag with pattern "\d.\d" as mayor.minor version (e.g. infra-tools-1.3.6 -> 1.3)
 # add_latest_tag: true/false "latest" gets added as additiontal image tag
  
 name: Publish image (and run Trivy)
@@ -14,26 +18,33 @@ on:
         description: "Name of the image to build"
         required: true
         type: string
-      context:
-        description: "Directory where the image is built, defaults to repository root"
-        required: false
-        default: "./"
-        type: string
       container_registry:
-        description: "Target container registry. Currently only ghcr.io(default) is implemented."
+        description: "Comma separated list of target container registries. Possible registries are ghcr.io (default), quay.io and dockerhub."
         required: false
         type: string
         default: "ghcr.io"
+      dockerhub_repository_owner:
+        description: "The owner of the repository in dockerhub. Required when pushing to dockerhub."
+        required: false
+        type: string
+      quay_repository_owner:
+        description: "The owner of the repository in quay.io. Required when pushing to quay.io."
+        required: false
+        type: string  
       add_latest_tag:
         description: "Whether latest should be added as image tag (default: false)"
         required: false
         type: boolean
         default: false
       image_tag_generation:
-        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag"
+        description: "Comma separated list of image tag generation strategies: ticket_from_branch, commit_hash, version_git_tag, mmp_git_tag or mm_git_tag"
         required: false
         type: string
-        default: "ticket_from_branch"
+      context:
+        description: "Directory where the image is built, defaults to repository root"
+        required: false
+        default: "./"
+        type: string
       run_trivy_scan:
         description: "Whether a trivy scan should run on the uploaded image (default: true)"
         required: false
@@ -64,10 +75,19 @@ on:
         required: false
         default: ""
         type: string
+    secrets:
+      DOCKER_USERNAME:
+        required: false
+      DOCKER_TOKEN:
+        required: false
+      QUAY_USERNAME:
+        required: false
+      QUAY_TOKEN:
+        required: false
 
 jobs:
   build_and_upload_image:
-    name: Publish image to ${{ inputs.container_registry }}
+    name: Publish image
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
@@ -75,27 +95,60 @@ jobs:
       packages: write
       contents: read
     steps:
+      - name: Check conditional inputs
+        run: | 
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z "${{ inputs.dockerhub_repository_owner }}" ]]; then
+            echo "Error: when pushing to dockerhub a repository owner is required."
+            exit 1
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z "${{ inputs.quay_repository_owner }}" ]]; then
+            echo "Error: when pushing to quay.io a repository owner is required."
+            exit 1
+          fi
+
       - name: Checkout Code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      
       - name: Build image name and tags
         id: docker_meta_img
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 #v5.5.1
         with:
-          images: ${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}
+          images: | 
+            name=ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'ghcr.io') }}
+            name=docker.io/${{ inputs.dockerhub_repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'dockerhub') }}
+            name=quay.io/${{ inputs.quay_repository_owner }}/${{ inputs.image_name }},enable=${{ contains(inputs.container_registry, 'quay.io') }}
           tags: |
-            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
-            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ inputs.image_tag_generation == 'ticket_from_branch' }}
-            type=sha,enable=${{ inputs.image_tag_generation == 'commit_hash' }}
-            type=pep440,pattern={{version}},enable=${{ inputs.image_tag_generation == 'version_git_tag' }}
+            type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ contains(inputs.image_tag_generation, 'ticket_from_branch') }}
+            type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ contains(inputs.image_tag_generation, 'ticket_from_branch') }}
+            type=match,pattern=\d.\d.\d,enable=${{ contains(inputs.image_tag_generation, 'mmp_git_tag') }}
+            type=match,pattern=\d.\d,enable=${{ contains(inputs.image_tag_generation, 'mm_git_tag') }}
+            type=sha,enable=${{ contains(inputs.image_tag_generation, 'commit_hash') }}
+            type=pep440,pattern={{version}},enable=${{ contains(inputs.image_tag_generation, 'version_git_tag') }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
-      - name: Login (GHCR)
+      
+      - name: Log into ghcr.io
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
-        if: ${{ inputs.container_registry == 'ghcr.io' }}
+        if: ${{ contains(inputs.container_registry, 'ghcr.io') }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Log into dockerhub
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
+        if: ${{ contains(inputs.container_registry, 'dockerhub') }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      
+      - name: Log into quay.io
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d #v3.0.0
+        if: ${{ contains(inputs.container_registry, 'quay.io') }}
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+      
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         id: docker_build_push
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 #v5.1.0
@@ -106,17 +159,36 @@ jobs:
           tags: ${{ steps.docker_meta_img.outputs.tags }}
           labels: ${{ steps.docker_meta_img.outputs.labels }}
           target: ${{ inputs.target }}
+  
+  pre_scan:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_trivy_scan }}
+    needs: build_and_upload_image
+    outputs:
+      registry_and_owner: ${{ steps.registry_and_owner.outputs.registry_and_owner }}
+    steps:
+      - name: Derive registry and owner for image to scan
+        id: registry_and_owner
+        run: |
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
+            echo "registry_and_owner=docker.io/${{ inputs.dockerhub_repository_owner }}" >> $GITHUB_OUTPUT
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} ]]; then
+            echo "registry_and_owner=quay.io/${{ inputs.quay_repository_owner }}" >> $GITHUB_OUTPUT
+          elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
+            echo "registry_and_owner=ghcr.io/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+          fi
+
   trivy_scan:
     name: Trivy scan for uploaded image
     # Wait for image upload
-    needs: build_and_upload_image
+    needs: [build_and_upload_image, pre_scan]
     if: ${{ inputs.run_trivy_scan }}
     permissions:
       packages: read
       security-events: write
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
     with:
-      image_ref: '${{ inputs.container_registry }}/${{ github.repository_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
+      image_ref: '${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
