@@ -167,7 +167,7 @@ jobs:
     outputs:
       registry_and_owner: ${{ steps.registry_and_owner.outputs.registry_and_owner }}
     steps:
-      - name: Build registry and owner for image to scan
+      - name: Derive registry and owner for image to scan
         id: registry_and_owner
         run: |
           if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
