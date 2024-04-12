@@ -133,12 +133,12 @@ jobs:
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
       
-      - name: Add dependency
-        run: helm dependency update automation/${{ inputs.chart_name }}
+      #- name: Add dependency
+      #  run: helm dependency update automation/${{ inputs.chart_name }}
 
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
+          helm package --dependency-update ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
