@@ -153,4 +153,4 @@ jobs:
           cd helm-charts-registry/automation
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
-          git push origin main   
+          git push origin main
