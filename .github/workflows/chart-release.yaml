@@ -131,6 +131,9 @@ jobs:
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
 
+      - name: Update Helm Chart Dependencies
+        run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
+
       - name: Prepare Helm Chart
         run:  |
           helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
