@@ -134,7 +134,7 @@ jobs:
           echo "image_tag=$image_tag" >> $GITHUB_ENV
       
       - name: Add dependency
-        run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}/charts
+        run: helm dependency update automation/${{ inputs.chart_name }}
 
       - name: Prepare Helm Chart
         run:  |
