@@ -59,8 +59,8 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com" 
 
-      - name: Helm Repository update
-        run: helm repo update
+      - name: Add dependency
+        run: helm dependency update ./charts/dbildungs-iam-server
 
       - name: Install Helm
         uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78  #v3.5
@@ -74,7 +74,7 @@ jobs:
           token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
           fetch-depth: 0
           persist-credentials: true
-          ref: DBP-453-Create-Redis-DBCluster-available-for-session-storage-of-SPSH
+          ref: main #DBP-453-Create-Redis-DBCluster-available-for-session-storage-of-SPSH
           path: helm-charts-registry
 
       - name: Replace placeholders
