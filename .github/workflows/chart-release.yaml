@@ -1,3 +1,4 @@
+
 # Packages the helm chart and pushes it to the helm-charts-registry where it gets released
 # Options for generated helm chart versions:
 # helm_chart_version_generation: "chart_yaml" The version specified in the Chart.yaml is used
@@ -44,7 +45,7 @@ on:
         description: "image tag (required if image_tag_generation: specified)"
         required: false
         
-        
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -63,7 +64,7 @@ jobs:
         uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78  #v3.5
         with:
           version: 3.12.3
-      
+
       - name: Helm Repository Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
@@ -130,7 +131,7 @@ jobs:
             image_tag="${{ inputs.image_tag }}"
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
-      
+
       - name: Update Helm Chart Dependencies
         run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
 
@@ -151,4 +152,4 @@ jobs:
           cd helm-charts-registry/automation
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
-          git push origin main
+          git push origin main  
