@@ -1,4 +1,3 @@
-
 # Packages the helm chart and pushes it to the helm-charts-registry where it gets released
 # Options for generated helm chart versions:
 # helm_chart_version_generation: "chart_yaml" The version specified in the Chart.yaml is used
