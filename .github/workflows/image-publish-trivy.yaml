@@ -97,10 +97,10 @@ jobs:
     steps:
       - name: Check conditional inputs
         run: | 
-          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z "${{ inputs.dockerhub_repository_owner }}" ]]; then
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z inputs.dockerhub_repository_owner ]]; then
             echo "Error: when pushing to dockerhub a repository owner is required."
             exit 1
-          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z "${{ inputs.quay_repository_owner }}" ]]; then
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z inputs.quay_repository_owner ]]; then
             echo "Error: when pushing to quay.io a repository owner is required."
             exit 1
           fi
