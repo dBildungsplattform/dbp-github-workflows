@@ -177,6 +177,9 @@ jobs:
           elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
             echo "registry_and_owner=ghcr.io/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
           fi
+      - name: Debug registry and owner
+        run: |
+          echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
 
   trivy_scan:
     name: Trivy scan for uploaded image
