@@ -167,9 +167,6 @@ jobs:
     outputs:
       registry_and_owner: ${{ steps.registry_and_owner.outputs.registry_and_owner }}
     steps:
-      - name: Debug registry and owner pre deriving
-        run: |
-          echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
       - name: Derive registry and owner for image to scan
         id: registry_and_owner
         run: |
@@ -181,10 +178,6 @@ jobs:
             registry_and_owner=ghcr.io/${{ github.repository_owner }}
           fi
           echo "registry_and_owner=$registry_and_owner" >> $GITHUB_OUTPUT
-
-      - name: Debug registry and owner post deriving
-        run: |
-          echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
 
   trivy_scan:
     name: Trivy scan for uploaded image
