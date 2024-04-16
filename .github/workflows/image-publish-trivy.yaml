@@ -180,6 +180,7 @@ jobs:
       - name: Debug registry and owner
         run: |
           echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
+          echo "$GITHUB_OUTPUT"
 
   trivy_scan:
     name: Trivy scan for uploaded image
