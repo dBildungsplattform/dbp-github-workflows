@@ -167,6 +167,10 @@ jobs:
     outputs:
       registry_and_owner: ${{ steps.registry_and_owner.outputs.registry_and_owner }}
     steps:
+      - name: Debug registry and owner pre deriving
+        run: |
+          echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
+          cat $GITHUB_OUTPUT
       - name: Derive registry and owner for image to scan
         id: registry_and_owner
         run: |
@@ -177,7 +181,7 @@ jobs:
           elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
             echo "registry_and_owner=ghcr.io/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
           fi
-      - name: Debug registry and owner
+      - name: Debug registry and owner post deriving
         run: |
           echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
           cat $GITHUB_OUTPUT
