@@ -174,12 +174,14 @@ jobs:
         id: registry_and_owner
         run: |
           if [ ${{ contains(inputs.container_registry, 'dockerhub') }} ]; then
-            echo "registry_and_owner=docker.io/${{ inputs.dockerhub_repository_owner }}" >> $GITHUB_OUTPUT
+            registry_and_owner=docker.io/${{ inputs.dockerhub_repository_owner }}
           elif [ ${{ contains(inputs.container_registry, 'quay.io') }} ]; then
-            echo "registry_and_owner=quay.io/${{ inputs.quay_repository_owner }}" >> $GITHUB_OUTPUT
+            registry_and_owner=quay.io/${{ inputs.quay_repository_owner }}
           elif [ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]; then
-            echo "registry_and_owner=ghcr.io/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+            registry_and_owner=ghcr.io/${{ github.repository_owner }}
           fi
+          echo "registry_and_owner=$registry_and_owner" >> $GITHUB_OUTPUT
+
       - name: Debug registry and owner post deriving
         run: |
           echo "${{ steps.registry_and_owner.outputs.registry_and_owner }}"
