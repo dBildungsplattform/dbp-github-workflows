@@ -97,10 +97,10 @@ jobs:
     steps:
       - name: Check conditional inputs
         run: | 
-          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z "${{ inputs.dockerhub_repository_owner }}" ]]; then
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z inputs.dockerhub_repository_owner ]]; then
             echo "Error: when pushing to dockerhub a repository owner is required."
             exit 1
-          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z "${{ inputs.quay_repository_owner }}" ]]; then
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} && -z inputs.quay_repository_owner ]]; then
             echo "Error: when pushing to quay.io a repository owner is required."
             exit 1
           fi
@@ -170,13 +170,14 @@ jobs:
       - name: Derive registry and owner for image to scan
         id: registry_and_owner
         run: |
-          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} ]]; then
-            echo "registry_and_owner=docker.io/${{ inputs.dockerhub_repository_owner }}" >> $GITHUB_OUTPUT
-          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} ]]; then
-            echo "registry_and_owner=quay.io/${{ inputs.quay_repository_owner }}" >> $GITHUB_OUTPUT
-          elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} ]]; then
-            echo "registry_and_owner=ghcr.io/${{ github.repository_owner }}" >> $GITHUB_OUTPUT
+          if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} == true ]]; then
+            registry_and_owner=docker.io/${{ inputs.dockerhub_repository_owner }}
+          elif [[ ${{ contains(inputs.container_registry, 'quay.io') }} == true ]]; then
+            registry_and_owner=quay.io/${{ inputs.quay_repository_owner }}
+          elif [[ ${{ contains(inputs.container_registry, 'ghcr.io') }} == true ]]; then
+            registry_and_owner=ghcr.io/${{ github.repository_owner }}
           fi
+          echo "registry_and_owner=$registry_and_owner" >> $GITHUB_OUTPUT
 
   trivy_scan:
     name: Trivy scan for uploaded image
@@ -188,7 +189,7 @@ jobs:
       security-events: write
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@5
     with:
-      image_ref: '${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}'
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
