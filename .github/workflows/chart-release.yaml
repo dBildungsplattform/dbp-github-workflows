@@ -35,7 +35,7 @@ on:
         required: false
         default: ""
       image_tag_generation:
-        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag, specified"
+        description: "Generation of the image tag: ticket_from_branch(default), commit_hash or version_git_tag, specified, omit"
         required: false
         type: string
         default: "ticket_from_branch"
@@ -129,6 +129,9 @@ jobs:
           elif [[ "${{ inputs.image_tag_generation }}" == 'specified' ]]; then
             image_tag="${{ inputs.image_tag }}"
           fi
+          elif [[ "${{ inputs.image_tag_generation }}" == 'omit' ]]; then
+            echo "image_tag specification ommited, helm uses value from chart.yaml"
+          fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
 
       - name: Update Helm Chart Dependencies
@@ -136,7 +139,7 @@ jobs:
 
       - name: Prepare Helm Chart
         run:  |
-          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry --app-version ${{ env.image_tag }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
+          helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry  ${{ inputs.image_tag_generation != 'omit' && '--app-version ${{ env.image_tag }}' || '' }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
           tar -xzf ${{ inputs.chart_name }}*.tgz
