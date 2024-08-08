@@ -140,12 +140,12 @@ jobs:
 
         #here 
       - name: Print Input List
-        run: echo "${{ inputs.helm_repo_lists }}"
+        run: echo "$inputs.helm_repo_lists"
         
       - name: Add Helm Repos if wanted
         if: ${{ inputs.helm_repo_list != '' }}
         run: |
-          IFS=',' read -r -a repo_array <<< "${{ inputs.helm_repo_lists }}"
+          IFS=',' read -r -a repo_array <<< "$inputs.helm_repo_lists"
           for ((i=0; i<${#repo_array[@]}; i+=2)); do
             name=${repo_array[i]}
             url=${repo_array[i+1]}
