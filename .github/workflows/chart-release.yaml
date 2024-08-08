@@ -139,7 +139,7 @@ jobs:
 
         #here 
       - name: Print Input List
-        run: echo "${{ inputs.helm_repo_lists }}"
+        run: echo ${{ inputs.helm_repo_lists }}
         
         
       - name: Add Helm Repos if wanted
