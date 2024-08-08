@@ -136,11 +136,6 @@ jobs:
             echo "image_tag specification ommited, helm uses value from chart.yaml"
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
-
-        #here 
-      - name: Print Input List
-        run: echo  ${{ inputs.helm_repo_list }}
-        
         
       - name: Add Helm Repos if wanted
         if: ${{ inputs.helm_repo_list != '' }}
@@ -149,9 +144,8 @@ jobs:
           for ((i=0; i<${#repo_array[@]}; i+=2)); do
             name=${repo_array[i]}
             url=${repo_array[i+1]}
-            echo adding $name from $url
+            echo adding helm reposiory $name from source $url
             helm repo add $name $url
-            echo "added helm repo $name from $url"
           done
 
 
