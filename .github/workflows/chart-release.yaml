@@ -146,8 +146,8 @@ jobs:
           for ((i=0; i<${#repo_array[@]}; i+=2)); do
             name=${repo_array[i]}
             url=${repo_array[i+1]}
-            helm repo add "$name" "$url"
-            echo "added helm repo $name from $url
+            helm repo add $name $url
+            echo "added helm repo $name from $url"
 
 #      - name: Update Helm Chart Dependencies
 #        run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
