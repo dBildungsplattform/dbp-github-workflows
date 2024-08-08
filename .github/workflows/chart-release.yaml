@@ -47,7 +47,6 @@ on:
         type: string
         description: "List of helm repos to add, in format: repo_name1,repo_url1,repo_name2,repo_url2"
         required: false
-        default: "name1,url1,name2,url2"
         
 
 jobs:
@@ -141,6 +140,7 @@ jobs:
         #here 
       - name: Print Input List
         run: echo "${{ inputs.helm_repo_lists }}"
+        
         
       - name: Add Helm Repos if wanted
         if: ${{ inputs.helm_repo_list != '' }}
