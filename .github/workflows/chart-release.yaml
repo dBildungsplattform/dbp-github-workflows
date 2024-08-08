@@ -149,6 +149,7 @@ jobs:
           for ((i=0; i<${#repo_array[@]}; i+=2)); do
             name=${repo_array[i]}
             url=${repo_array[i+1]}
+            echo adding $name from $url
             helm repo add $name $url
             echo "added helm repo $name from $url"
           done
