@@ -47,6 +47,7 @@ on:
         type: string
         description: "List of helm repos to add, in format: repo_name1,repo_url1,repo_name2,repo_url2"
         required: false
+        default: ""
         
 
 jobs:
