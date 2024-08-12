@@ -138,7 +138,7 @@ jobs:
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
         
-      - name: Add Helm Repos if wanted
+      - name: Add Helm Repos (Optional)
         if: ${{ inputs.helm_repo_list != '' }}
         run: |
           IFS=',' read -r -a repo_array <<< "${{ inputs.helm_repo_list }}"
