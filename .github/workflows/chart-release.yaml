@@ -43,6 +43,11 @@ on:
         type: string
         description: "image tag (required if image_tag_generation: specified)"
         required: false
+      helm_repo_list:
+        type: string
+        description: "List of helm repos to add, in format: repo_name1,repo_url1,repo_name2,repo_url2"
+        required: false
+        default: ""
         
 
 jobs:
@@ -132,6 +137,17 @@ jobs:
             echo "image_tag specification ommited, helm uses value from chart.yaml"
           fi
           echo "image_tag=$image_tag" >> $GITHUB_ENV
+        
+      - name: Add Helm Repos (Optional)
+        if: ${{ inputs.helm_repo_list != '' }}
+        run: |
+          IFS=',' read -r -a repo_array <<< "${{ inputs.helm_repo_list }}"
+          for ((i=0; i<${#repo_array[@]}; i+=2)); do
+            name=${repo_array[i]}
+            url=${repo_array[i+1]}
+            echo adding helm reposiory $name from source $url
+            helm repo add $name $url
+          done
 
       - name: Update Helm Chart Dependencies
         run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
