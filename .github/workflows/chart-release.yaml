@@ -167,6 +167,7 @@ jobs:
           git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
           git config --global user.name "${{ inputs.chart_name }}-gha"
           cd helm-charts-registry/automation
+          git pull
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
           git push origin main  
