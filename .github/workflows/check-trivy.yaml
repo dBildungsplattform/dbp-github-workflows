@@ -50,9 +50,9 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
-        env:
-          TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db"
-          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
+        # env:
+        #   TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db"
+        #   TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
 
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
