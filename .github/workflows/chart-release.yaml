@@ -69,16 +69,6 @@ jobs:
         with:
           version: 3.12.3
 
-      - name: Helm Repository Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
-        with:
-          repository: dBildungsplattform/helm-charts-registry
-          token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
-          fetch-depth: 0
-          persist-credentials: true
-          ref: main
-          path: helm-charts-registry
-
       - name: Replace placeholders
         if: inputs.substitute_placeholders != ''
         run:  |
@@ -152,6 +142,16 @@ jobs:
       - name: Update Helm Chart Dependencies
         run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
 
+      - name: Helm Repository Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          repository: dBildungsplattform/helm-charts-registry
+          token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+          fetch-depth: 0
+          persist-credentials: true
+          ref: main
+          path: helm-charts-registry
+
       - name: Prepare Helm Chart
         run:  |
           helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry  ${{ inputs.image_tag_generation != 'chart_yaml' && '--app-version $image_tag' || '' }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
@@ -167,6 +167,7 @@ jobs:
           git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
           git config --global user.name "${{ inputs.chart_name }}-gha"
           cd helm-charts-registry/automation
+          git pull
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
           git push origin main  
