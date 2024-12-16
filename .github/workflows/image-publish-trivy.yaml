@@ -6,6 +6,7 @@
 # image_tag_generation: "ticket_from_branch" The ticket is extracted from the branch name (e.g. OPS-123-testing -> OPS-123)
 # image_tag_generation: "commit_hash" Short hash of the commit is used as tag
 # image_tag_generation: "version_git_tag" Git tag with version is used as tag
+# image_tag_generation: "specified" The version specified with the image_tag input is used as tag
 # image_tag_generation: "mmp_git_tag" The tag is derived from git tag with pattern "\d.\d.\d" as mayor.minor.patch version (e.g. infra-tools-1.3.6 -> 1.3.6)
 # image_tag_generation: "mm_git_tag" The tag is derived from git tag with pattern "\d.\d" as mayor.minor version (e.g. infra-tools-1.3.6 -> 1.3)
 # add_latest_tag: true/false "latest" gets added as additiontal image tag
@@ -37,9 +38,13 @@ on:
         type: boolean
         default: false
       image_tag_generation:
-        description: "Comma separated list of image tag generation strategies: ticket_from_branch, commit_hash, version_git_tag, mmp_git_tag or mm_git_tag"
+        description: "Comma separated list of image tag generation strategies: ticket_from_branch, commit_hash, version_git_tag, specified, mmp_git_tag or mm_git_tag"
         required: false
         type: string
+      image_tag:
+        type: string
+        description: "Custom image tag (required if image_tag_generation: specified)"
+        required: false
       context:
         description: "Directory where the image is built, defaults to repository root"
         required: false
@@ -123,6 +128,7 @@ jobs:
             type=match,pattern=\d.\d,enable=${{ contains(inputs.image_tag_generation, 'mm_git_tag') }}
             type=sha,enable=${{ contains(inputs.image_tag_generation, 'commit_hash') }}
             type=pep440,pattern={{version}},enable=${{ contains(inputs.image_tag_generation, 'version_git_tag') }}
+            type=raw,value=${{ inputs.image_tag }},enable=${{ contains(inputs.image_tag_generation, 'specified') }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
       
