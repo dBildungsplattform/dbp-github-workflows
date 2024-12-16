@@ -80,6 +80,11 @@ on:
         required: false
         default: ""
         type: string
+      github_branch:
+        description: "Define the Github Branch which should get checked out - main perdefault"
+        required: false
+        default: "main"
+        type: string
     secrets:
       DOCKER_USERNAME:
         required: false
@@ -112,6 +117,8 @@ jobs:
 
       - name: Checkout Code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with: ${{ inputs.github_branch }}
+
       
       - name: Build image name and tags
         id: docker_meta_img
