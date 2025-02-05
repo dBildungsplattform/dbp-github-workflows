@@ -63,6 +63,8 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com" 
+          ls -la
+          git status
 
       - name: Install Helm
         uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78  #v3.5
@@ -140,7 +142,8 @@ jobs:
           done
 
       - name: Update Helm Chart Dependencies
-        run: helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
+        run: | 
+          helm dependency update ${{ inputs.chart_path }}/${{ inputs.chart_name }}
 
       - name: Helm Repository Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
