@@ -47,6 +47,9 @@ jobs:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
 
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
