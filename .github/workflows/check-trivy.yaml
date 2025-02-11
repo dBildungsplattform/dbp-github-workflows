@@ -26,6 +26,11 @@ on:
         required: false
         default: ""
         type: string
+      trivyignores:
+        description: "comma-separated list of relative paths in repository to one or more .trivyignore files"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   trivy_scan:
@@ -52,6 +57,7 @@ jobs:
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
           limit-severities-for-sarif: true
+          trivyignores: ${{ inputs.trivyignores }}
         env:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
