@@ -65,6 +65,11 @@ on:
         required: false
         default: true
         type: boolean
+      limit-severities-for-sarif:
+        description: "limit severities for SARIF format"
+        required: false
+        default: false
+        type: boolean
       ignore-unfixed:
         description: "Ignore vulerabilities without fix"
         required: false
@@ -200,3 +205,4 @@ jobs:
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
       report_location: ${{ inputs.report_location }}
+      limit-severities-for-sarif:  ${{ inputs.limit-severities-for-sarif }}

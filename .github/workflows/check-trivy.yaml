@@ -31,6 +31,11 @@ on:
         required: false
         default: ""
         type: string
+      limit-severities-for-sarif:
+        description: "limit severities for SARIF format"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   trivy_scan:
@@ -59,7 +64,7 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
-          limit-severities-for-sarif: true
+          limit-severities-for-sarif: ${{ limit-severities-for-sarif }}
           trivyignores: ${{ inputs.trivyignores }}
         env:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
