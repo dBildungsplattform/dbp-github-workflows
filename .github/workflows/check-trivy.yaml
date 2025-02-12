@@ -52,7 +52,8 @@ jobs:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
 
-      - name: Checkout code
+      - name: Checkout code (if trivyignore file exists)
+        if: ${{ inputs.trivyignores != '' }}
         uses: actions/checkout@v2
 
       - name: Run Trivy vulnerability scanner
