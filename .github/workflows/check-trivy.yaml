@@ -54,7 +54,7 @@ jobs:
 
       - name: Checkout code (if trivyignore file exists)
         if: ${{ inputs.trivyignores != '' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
