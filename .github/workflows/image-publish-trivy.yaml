@@ -65,6 +65,11 @@ on:
         required: false
         default: true
         type: boolean
+      limit-severities-for-sarif:
+        description: "limit severities for SARIF format"
+        required: false
+        default: false
+        type: boolean
       ignore-unfixed:
         description: "Ignore vulerabilities without fix"
         required: false
@@ -193,10 +198,11 @@ jobs:
     permissions:
       packages: read
       security-events: write
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@7
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@@7
     with:
       image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
       report_location: ${{ inputs.report_location }}
+      limit-severities-for-sarif:  ${{ inputs.limit-severities-for-sarif }}

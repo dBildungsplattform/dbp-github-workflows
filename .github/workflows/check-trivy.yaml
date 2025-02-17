@@ -26,6 +26,16 @@ on:
         required: false
         default: ""
         type: string
+      trivyignores:
+        description: "comma-separated list of relative paths in repository to one or more .trivyignore files"
+        required: false
+        default: ""
+        type: string
+      limit-severities-for-sarif:
+        description: "limit severities for SARIF format"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   trivy_scan:
@@ -41,6 +51,11 @@ jobs:
         env:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
+
+      - name: Checkout code (if trivyignore file exists)
+        if: ${{ inputs.trivyignores != '' }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
@@ -50,6 +65,8 @@ jobs:
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
+          limit-severities-for-sarif: ${{ inputs.limit-severities-for-sarif }}
+          trivyignores: ${{ inputs.trivyignores }}
         env:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
