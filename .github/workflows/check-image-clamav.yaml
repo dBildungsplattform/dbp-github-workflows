@@ -26,10 +26,12 @@ jobs:
     - name: Scanning image content
       run: |
         ls -lah /var/lib/clamav/
-        du -sh /var/lib/clamav/
+        sudo du -sh /var/lib/clamav/
+        sudo tail /var/log/clamav/freshclam.log
         sleep 30
         ls -lah /var/lib/clamav/
-        du -sh /var/lib/clamav/
+        sudo du -sh /var/lib/clamav/
+        sudo tail /var/log/clamav/freshclam.log
         echo "Virus DB:"
         clamscan --version
         clamscan -r ./tmp_scan
