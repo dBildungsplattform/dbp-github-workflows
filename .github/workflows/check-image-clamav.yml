@@ -1,0 +1,29 @@
+name: Scan image with ClamAV
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_ref:
+        description: "Image that should be scanned"
+        required: true
+        type: string
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install ClamAV and update DB
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clamav
+        sudo freshclam
+    - name: Extract image content
+      env:
+        IMAGE_REF: '${{ inputs.image_ref }}'
+      run: |
+        docker create --name scan ${IMAGE_REF@L}
+        mkdir tmp_scan
+        docker cp scan:/ ./tmp_scan
+    - name: Scanning image content
+      run: |
+        clamscan ./tmp_scan
