@@ -23,15 +23,24 @@ jobs:
         docker create --name scan ${IMAGE_REF@L}
         mkdir tmp_scan
         docker cp scan:/ ./tmp_scan
+    - name: Wait until signatures are updated
+      timeout-minutes: 2
+      run: |
+        while true; do
+          if sudo grep -q "main.cvd updated" /var/log/clamav/freshclam.log && \
+             sudo grep -q "daily.cvd updated" /var/log/clamav/freshclam.log && \
+             sudo grep -q "bytecode.cvd updated" /var/log/clamav/freshclam.log; then
+            echo "Signatures updated."
+            exit 0
+          else
+            echo "Signatures not updated yet..."
+          fi
+          sleep 1
+        done
     - name: Scanning image content
       run: |
-        ls -lah /var/lib/clamav/
-        sudo du -sh /var/lib/clamav/
-        sudo tail /var/log/clamav/freshclam.log
-        sleep 30
-        ls -lah /var/lib/clamav/
-        sudo du -sh /var/lib/clamav/
-        sudo tail /var/log/clamav/freshclam.log
-        echo "Virus DB:"
-        clamscan --version
-        clamscan -r ./tmp_scan
+        clamscan -r ./tmp_scan | tee scan.log
+        if [ $? -eq 1 ]; then
+          echo "::error:: Virus findings in image: $(cat scan.log)"
+          exit 1
+        fi
