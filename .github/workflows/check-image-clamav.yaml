@@ -12,10 +12,12 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-    - name: Install ClamAV and update DB
+    - name: Install ClamAV
       run: |
         sudo apt-get update
         sudo apt-get install -y clamav
+    - name: Update virus DB
+      run: |
         sudo freshclam
     - name: Extract image content
       env:
