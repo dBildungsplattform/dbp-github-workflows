@@ -1,7 +1,7 @@
 name: Scan image with ClamAV
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       image_ref:
         description: "Image that should be scanned"
