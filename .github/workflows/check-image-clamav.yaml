@@ -39,6 +39,7 @@ jobs:
         done
     - name: Scanning image content
       run: |
+        set +e
         clamscan -ir ./tmp_scan
         if [ $? -eq 1 ]; then
           echo "::error:: Virus findings in image! More details are in the workflow logs."
