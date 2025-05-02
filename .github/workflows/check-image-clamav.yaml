@@ -25,6 +25,9 @@ jobs:
         docker cp scan:/ ./tmp_scan
     - name: Scanning image content
       run: |
+        ls -la /var/lib/clamav/
+        sigtool --info /var/lib/clamav/daily.cvd
+        sigtool --info /var/lib/clamav/main.cvd
         echo "Virus DB:"
         clamscan --version
         clamscan -r ./tmp_scan
