@@ -10,6 +10,7 @@ on:
 
 jobs:
   scan:
+    name: ClamAV Scan
     runs-on: ubuntu-latest
     steps:
     - name: Install ClamAV
