@@ -16,10 +16,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clamav
-    - name: Update virus DB
-      run: |
-        # sudo freshclam
-        clamscan --version
     - name: Extract image content
       env:
         IMAGE_REF: '${{ inputs.image_ref }}'
@@ -29,4 +25,6 @@ jobs:
         docker cp scan:/ ./tmp_scan
     - name: Scanning image content
       run: |
-        clamscan ./tmp_scan
+        echo "Virus DB:"
+        clamscan --version
+        clamscan -r ./tmp_scan
