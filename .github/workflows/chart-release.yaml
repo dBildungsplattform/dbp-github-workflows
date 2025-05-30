@@ -171,3 +171,8 @@ jobs:
           git add ${{ inputs.chart_name }}
           git commit -m "${{ inputs.chart_name }}"
           git push origin main  
+        
+      - name: Set chart release output
+        id: chart_release_output
+        run: echo "helm_chart_version=${{ env.chart_version }}" >> $GITHUB_OUTPUT
+
