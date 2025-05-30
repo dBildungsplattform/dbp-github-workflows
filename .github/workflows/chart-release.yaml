@@ -48,10 +48,16 @@ on:
         description: "List of helm repos to add, in format: repo_name1,repo_url1,repo_name2,repo_url2"
         required: false
         default: ""
+    outputs:
+      helm_chart_version: 
+        value: ${{ jobs.release.outputs.helm_chart_version }}
+        description: "Version of the published helm chart"
         
 
 jobs:
   release:
+    outputs:
+      helm_chart_version: ${{ steps.chart_release_output.outputs.helm_chart_version }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -175,4 +181,3 @@ jobs:
       - name: Set chart release output
         id: chart_release_output
         run: echo "helm_chart_version=${{ env.chart_version }}" >> $GITHUB_OUTPUT
-
