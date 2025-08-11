@@ -175,8 +175,17 @@ jobs:
           cd helm-charts-registry/automation
           git pull
           git add ${{ inputs.chart_name }}
-          git commit -m "${{ inputs.chart_name }}"
-          git push origin main  
+          git diff --cached --exit-code
+          status=$?
+          if [[ $status -ne 0 ]]; then
+              # Changes detected in staged files.
+              echo "Changes detected in staged files. Creating a new commit."
+              git commit -m "${{ inputs.chart_name }}"
+              git push origin main  
+          else 
+              # No changes detected in staged files.
+              echo "No changes detected in staged files. Skipping commit and push."
+          fi
         
       - name: Set chart release output
         id: chart_release_output
