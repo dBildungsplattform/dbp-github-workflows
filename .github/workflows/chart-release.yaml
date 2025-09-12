@@ -170,19 +170,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
         run: |
-          set -e
           git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
           git config --global user.name "${{ inputs.chart_name }}-gha"
           cd helm-charts-registry/automation
           git pull
           git add ${{ inputs.chart_name }}
-          git diff --cached --exit-code
-          status=$?
-          if [[ $status -ne 0 ]]; then
-              #Changes detected in staged files.
-              echo "Changes detected in staged files. Creating a new commit."
-              git commit -m "${{ inputs.chart_name }}"
-              git push origin main 
+          if ! git diff --cached --quiet; then
+            echo "Changes detected in staged files. Creating a new commit."
+            git commit -m "${{ inputs.chart_name }}"
+            git push origin main
           else 
               # No changes detected in staged files.
               echo "No changes detected in staged files. Skipping commit and push."
