@@ -51,6 +51,9 @@ jobs:
         packages: read
         security-events: write
     steps:
+      - name: Debug - log works
+        run: echo "Trivy scan workflow started"
+        
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
         id: image_ref_lower
@@ -81,8 +84,9 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
       
-      - name: Debug scan_node_dependencies
-        run: echo "scan_node_dependencies=${{ inputs.scan_node_dependencies }}"
+      - name: Debug - scan_node_dependencies
+        #run: echo "scan_node_dependencies=${{ inputs.scan_node_dependencies }}"
+        run: "Hello scan_node_dependencies!"
       
       - name: Run Trivy filesystem scan for Node.js dependencies
         if: ${{ inputs.scan_node_dependencies }}
