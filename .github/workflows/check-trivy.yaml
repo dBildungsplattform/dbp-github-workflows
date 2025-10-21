@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Debug - scan_node_dependencies
         run: echo "scan_node_dependencies=${{ inputs.scan_node_dependencies }}"
-        
+
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
         id: image_ref_lower
@@ -85,7 +85,7 @@ jobs:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
       
       - name: Run Trivy filesystem scan for Node.js dependencies
-        if: ${{ inputs.scan_node_dependencies }}
+        if: ${{ always() && inputs.scan_node_dependencies }}
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           scan-type: "fs"
