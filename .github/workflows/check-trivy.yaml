@@ -79,7 +79,7 @@ jobs:
       
       - name: Run Trivy filesystem scan for Node.js dependencies
         if: ${{ inputs.scan_node_dependencies == true }}
-        uses: aquasecurity/trivy-action@b6643a2 # v0.33.1
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
         with:
           scan-type: "fs"
           scan-ref: "."
