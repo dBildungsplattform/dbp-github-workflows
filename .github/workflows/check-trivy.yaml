@@ -36,6 +36,12 @@ on:
         required: false
         default: false
         type: boolean
+      scan_node_dependencies:
+        description: "Scan Node.js dependencies using trivy fs"
+        required: false
+        default: false
+        type: boolean
+
 
 jobs:
   trivy_scan:
@@ -70,6 +76,20 @@ jobs:
         env:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+      
+      - name: Run Trivy filesystem scan for Node.js dependencies
+        if: ${{ inputs.scan_node_dependencies == true }}
+        uses: aquasecurity/trivy-action@v0.17.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-node-results.sarif"
+          severity: ${{ inputs.severity }}
+          exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0 }}
+          ignore-unfixed: ${{ inputs.ignore-unfixed }}
+          limit-severities-for-sarif: ${{ inputs.limit-severities-for-sarif }}
+          trivyignores: ${{ inputs.trivyignores }}
 
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
@@ -82,3 +102,9 @@ jobs:
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
             sarif_file: 'trivy-results.sarif'
+      
+      - name: Upload Trivy Node.js scan results to GitHub Security tab
+        if: ${{ always() && inputs.scan_node_dependencies == true }}
+        uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
+        with:
+          sarif_file: 'trivy-node-results.sarif'
