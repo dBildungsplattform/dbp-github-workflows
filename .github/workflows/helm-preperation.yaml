@@ -1,0 +1,33 @@
+# https://github.com/norwoodj/helm-docs
+
+name: Run Helm-Preperation
+on:
+  workflow_call:
+
+jobs:
+  preperation:
+    runs-on: ubuntu-latest
+    outputs:
+      context: ${{ steps.get-context.outputs.context }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: get-context
+        id: get-context
+        run: |
+          git fetch origin main:main
+          context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq )
+          if [ -z "${context}" ]
+          then
+            echo "No changes in directory, stopping here..."
+            exit 78
+          elif test "$( echo "$context" | wc -l )" -gt 1
+          then
+            echo "Changes in more than one directory, stopping here..."
+            exit 78
+          else
+            echo $context
+            echo "context=$context" >> "$GITHUB_OUTPUT"
+          fi
