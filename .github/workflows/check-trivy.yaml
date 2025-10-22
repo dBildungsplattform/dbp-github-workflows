@@ -115,7 +115,7 @@ jobs:
           mv trivy.tmp trivy-results.sarif
         
       - name: Override location of Node.js findings
-        if: ${{ always() && inputs.scan_node_dependencies }}
+        if: ${{ always() && inputs.report_location != '' && inputs.scan_node_dependencies }}
         run: |
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-node-results.sarif > trivy-node.tmp 
           mv trivy-node.tmp trivy-node-results.sarif
