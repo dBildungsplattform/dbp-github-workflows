@@ -84,6 +84,16 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
       
+      - name: Set up Node.js
+        if: ${{ always() && inputs.scan_node_dependencies }}
+        uses: actions/setup-node@v3.11.0
+        with:
+          node-version: '18'
+
+      - name: Install Node.js dependencies
+        if: ${{ always() && inputs.scan_node_dependencies }}
+        run: npm ci
+
       - name: Run Trivy filesystem scan for Node.js dependencies
         if: ${{ always() && inputs.scan_node_dependencies }}
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
