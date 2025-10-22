@@ -134,8 +134,8 @@ jobs:
           tags: |
             type=match,value={{branch}},pattern=^\w+?-\d+,enable=${{ contains(inputs.image_tag_generation, 'ticket_from_branch') }}
             type=match,value=${{ github.head_ref || ''}},pattern=^\w+?-\d+,enable=${{ contains(inputs.image_tag_generation, 'ticket_from_branch') }}
-            type=match,pattern=\d.\d.\d,enable=${{ contains(inputs.image_tag_generation, 'mmp_git_tag') }}
-            type=match,pattern=\d.\d,enable=${{ contains(inputs.image_tag_generation, 'mm_git_tag') }}
+            type=match,pattern=\d+\.\d+\.\d+,enable=${{ contains(inputs.image_tag_generation, 'mmp_git_tag') }}
+            type=match,pattern=\d+\.\d+,enable=${{ contains(inputs.image_tag_generation, 'mm_git_tag') }}
             type=sha,enable=${{ contains(inputs.image_tag_generation, 'commit_hash') }}
             type=pep440,pattern={{version}},enable=${{ contains(inputs.image_tag_generation, 'version_git_tag') }}
             type=raw,value=${{ inputs.image_tag }},enable=${{ contains(inputs.image_tag_generation, 'specified') }}
