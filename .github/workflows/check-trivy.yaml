@@ -86,7 +86,7 @@ jobs:
       
       - name: Set up Node.js
         if: ${{ always() && inputs.scan_node_dependencies }}
-        uses: actions/setup-node@v3.11.0
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
