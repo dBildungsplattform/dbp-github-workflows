@@ -120,6 +120,12 @@ jobs:
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-node-results.sarif > trivy-node.tmp 
           mv trivy-node.tmp trivy-node-results.sarif
 
+      - name: Show Trivy Node.js SARIF file in logs
+        if: ${{ always() && inputs.scan_node_dependencies }}
+        run: |
+          echo "Contents of trivy-node-results.sarif after location override:"
+          cat trivy-node-results.sarif
+          
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
