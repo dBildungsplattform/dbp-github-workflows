@@ -34,9 +34,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
-    # Workaround because GitHub checks out the repo where the run was triggered, not this repo
     - name: Render Helm-Docs
-      uses: dBildungsplattform/dbp-github-workflows/.github/actions/helm-docs@helm-action-1.0.0
+      uses: dBildungsplattform/dbp-github-workflows/.github/actions/helm-docs@DBP-0000-add-wf-for-preperation
       with:
         # provide name of dirs to run helm-docs on, separate by comma without space
         src_path: ${{ inputs.src_path_helm}}
