@@ -41,7 +41,7 @@ jobs:
         run: |
           echo ${{ inputs.exclude_folders}} | tr ',' '\n' > excludes.txt
           git fetch origin ${{ inputs.compare_ref}}:${{ inputs.compare_ref}}
-          context=$(git diff --name-only $(git merge-base ${{ inputs.compare_ref}} HEAD) | cut -d/ -f 1-${{ inputs.result_depth}} | uniq | grep -v -w -f excludes.txt )
+          context=$(git diff --name-only $(git merge-base ${{ inputs.compare_ref}} HEAD) | cut -d/ -f 1-${{ inputs.result_depth}} | uniq | { grep -v -w -f excludes.txt || test $? = 1; } )
           if [ -z "${context}" ]
           then
             echo "No changes in directory, stopping here..."
