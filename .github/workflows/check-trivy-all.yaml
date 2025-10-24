@@ -36,6 +36,11 @@ on:
         required: false
         default: false
         type: boolean
+      scan_node_dependencies:
+        description: "Scan Node.js dependencies using trivy fs"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   trivy_scan:
@@ -56,6 +61,10 @@ jobs:
         if: ${{ inputs.trivyignores != '' }}
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
 
+      - name: Checkout code (for Node.js scan)
+        if: ${{ inputs.scan_node_dependencies }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
@@ -70,16 +79,53 @@ jobs:
         env:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+      
+      - name: Set up Node.js
+        if: ${{ always() && inputs.scan_node_dependencies }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Node.js dependencies
+        if: ${{ always() && inputs.scan_node_dependencies }}
+        run: npm ci
+
+      - name: Run Trivy filesystem scan for Node.js dependencies
+        if: ${{ always() && inputs.scan_node_dependencies }}
+        uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-node-results.sarif"
+          severity: ${{ inputs.severity }}
+          exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0 }}
+          ignore-unfixed: ${{ inputs.ignore-unfixed }}
+          limit-severities-for-sarif: ${{ inputs.limit-severities-for-sarif }}
+          trivyignores: ${{ inputs.trivyignores }}
 
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
           mv trivy.tmp trivy-results.sarif
-
+        
+      - name: Override location of Node.js findings
+        if: ${{ always() && inputs.report_location != '' && inputs.scan_node_dependencies }}
+        run: |
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-node-results.sarif > trivy-node.tmp 
+          mv trivy-node.tmp trivy-node-results.sarif
+          
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
             sarif_file: 'trivy-results.sarif'
             category: 'trivy-image-scan'
+      
+      - name: Upload Trivy Node.js scan results to GitHub Security tab
+        if: ${{ always() && inputs.scan_node_dependencies == true }}
+        uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
+        with:
+          sarif_file: 'trivy-node-results.sarif'
+          category: 'trivy-node-scan'
