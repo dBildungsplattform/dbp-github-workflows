@@ -56,16 +56,12 @@ jobs:
         env:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
+      
+      - name: Checkout code
+        if: ${{ inputs.trivyignores != '' || inputs.scan_node_dependencies }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
-      - name: Checkout code (if trivyignore file exists)
-        if: ${{ inputs.trivyignores != '' }}
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
-
-      - name: Checkout code (for Node.js scan)
-        if: ${{ inputs.scan_node_dependencies }}
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
-
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner on image
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
           image-ref: ${{ steps.image_ref_lower.outputs.output }}
