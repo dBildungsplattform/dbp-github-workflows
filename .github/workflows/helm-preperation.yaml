@@ -1,0 +1,57 @@
+name: Get context of changes
+on:
+  workflow_call:
+    inputs:
+      exclude_folders:
+        description: List of folders to exclude from search
+        required: false
+        default: ".github"
+        type: string
+      result_depth:
+        description: Path length for result output
+        required: false
+        default: 1
+        type: number
+      compare_ref:
+        description: "Reference for compare, could be branch-name, tag..."
+        required: false
+        default: "main"
+        type: string
+      folder_limit:
+        description: "Define max of listed folders in the output"
+        required: false
+        default: 1
+        type: number
+    outputs:
+      context:
+        value: ${{jobs.preperation.outputs.context}}
+
+jobs:
+  preperation:
+    runs-on: ubuntu-latest
+    outputs:
+      context: ${{ steps.get-context.outputs.context }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: get-context
+        id: get-context
+        run: |
+          echo ${{ inputs.exclude_folders}} | tr ',' '\n' > excludes.txt
+          git fetch origin ${{ inputs.compare_ref}}:${{ inputs.compare_ref}}
+          context=$(git diff --name-only $(git merge-base ${{ inputs.compare_ref}} HEAD) | cut -d/ -f 1-${{ inputs.result_depth}} | uniq | grep -v -w -f excludes.txt )
+          if [ -z "${context}" ]
+          then
+            echo "No changes in directory, stopping here..."
+            exit 78
+          elif test "$( echo "$context" | wc -l )" -gt ${{ inputs.folder_limit}}
+          then
+            echo "Changes in more than ${{ inputs.folder_limit}} directories, stopping here..."
+            printf "Changes found in:\n$context"
+            exit 78
+          else
+            echo $context
+            echo "context=$context" >> "$GITHUB_OUTPUT"
+          fi
