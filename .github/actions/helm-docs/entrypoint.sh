@@ -81,6 +81,10 @@ fi
 
 git config --global user.name "${USERNAME}"
 git config --global user.email "${EMAIL}"
+# https://github.com/git/git/commit/8959555cee7ec045958f9b6dd62e541affb7e7d9
+# Security risk fix, produces error "fatal: detected dubious ownership in repository at '/github/workspace'"
+# Currently solution is only a workaround until another way was found
+git config --system --add safe.directory /github/workspace
 
 # Pushing Changes back to Repo 
 if [ -z "$(git status --porcelain)" ]
