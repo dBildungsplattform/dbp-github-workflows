@@ -100,7 +100,7 @@ jobs:
           limit-severities-for-sarif: ${{ inputs.limit-severities-for-sarif }}
           trivyignores: ${{ inputs.trivyignores }}
 
-      - name: Override location of findings
+      - name: Override location of image findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
@@ -112,7 +112,7 @@ jobs:
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-node-results.sarif > trivy-node.tmp 
           mv trivy-node.tmp trivy-node-results.sarif
           
-      - name: Upload Trivy scan results to GitHub Security tab
+      - name: Upload Trivy image scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
