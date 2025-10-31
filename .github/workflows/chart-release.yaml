@@ -167,23 +167,13 @@ jobs:
           mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
 
       - name: Push Helm Chart
-        env:
-          GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
-        run: |
-          git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
-          git config --global user.name "${{ inputs.chart_name }}-gha"
-          cd helm-charts-registry/automation
-          git pull
-          git add ${{ inputs.chart_name }}
-          if ! git diff --cached --quiet; then
-            echo "Changes detected in staged files. Creating a new commit."
-            git commit -m "${{ inputs.chart_name }}"
-            git push origin main
-          else 
-              # No changes detected in staged files.
-              echo "No changes detected in staged files. Skipping commit and push."
-          fi
-        
+        uses: Artur-Davtyan/git-rebase-push-action@v1
+        with:
+          commit_message: "${{ inputs.chart_name }}"
+          repository_path: helm-charts-registry/automation
+          user_name: "${{ inputs.chart_name }}-gha"
+          user_email: "${{ inputs.chart_name }}@dbildungsplattform.de"
+
       - name: Set chart release output
         id: chart_release_output
         run: echo "helm_chart_version=${{ env.chart_version }}" >> $GITHUB_OUTPUT
