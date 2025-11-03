@@ -170,7 +170,7 @@ jobs:
         uses: Artur-Davtyan/git-rebase-push-action@v1
         with:
           commit_message: "${{ inputs.chart_name }}"
-          repository_path: helm-charts-registry/automation
+          repository_path: helm-charts-registry
           user_name: "${{ inputs.chart_name }}-gha"
           user_email: "${{ inputs.chart_name }}@dbildungsplattform.de"
           max_retries: 10
