@@ -168,7 +168,7 @@ jobs:
       - name: Push Helm Chart
         env:
           BRANCH: main
-          MAX_RETRIES: 3
+          MAX_RETRIES: 10
           RETRY_DELAY: 2
         run: |
           git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
