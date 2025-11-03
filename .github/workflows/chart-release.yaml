@@ -180,9 +180,8 @@ jobs:
             exit 0
           fi
 
-          git commit -m "${{ inputs.chart_name }}"
-
           # based on https://github.com/Artur-Davtyan/git-rebase-push-action/blob/main/entrypoint.sh to have a retry mechanism for concurrent git access by different workflows
+          git commit -m "${{ inputs.chart_name }}"
           attempt=1          
           while true; do
             echo "Attempting to push... (attempt $attempt)"
