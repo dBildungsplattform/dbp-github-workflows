@@ -165,15 +165,23 @@ jobs:
           tar -xzf ${{ inputs.chart_name }}*.tgz
           mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
 
-      # evaluated code at given hash, looks safe
       - name: Push Helm Chart
-        uses: Artur-Davtyan/git-rebase-push-action@998658f39c4fb5d915ba555acdbc7caea6cdcd7e
-        with:
-          commit_message: "${{ inputs.chart_name }}"
-          repository_path: helm-charts-registry
-          user_name: "${{ inputs.chart_name }}-gha"
-          user_email: "${{ inputs.chart_name }}@dbildungsplattform.de"
-          max_retries: 10
+        run: |
+          git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
+          git config --global user.name "${{ inputs.chart_name }}-gha"
+          cd helm-charts-registry/automation
+          git add ${{ inputs.chart_name }}
+          if ! git diff --cached --quiet; then
+            echo "Changes detected in staged files. Creating a new commit."
+            git commit -m "${{ inputs.chart_name }}"
+            # ensure no divergence in ref
+            git fetch origin main
+            git rebase origin/main
+            git push origin main
+          else 
+              # No changes detected in staged files.
+              echo "No changes detected in staged files. Skipping commit and push."
+          fi
 
       - name: Set chart release output
         id: chart_release_output
