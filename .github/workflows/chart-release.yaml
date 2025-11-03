@@ -153,7 +153,6 @@ jobs:
         with:
           repository: dBildungsplattform/helm-charts-registry
           token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
-          fetch-depth: 0
           persist-credentials: true
           ref: main
           path: helm-charts-registry
@@ -166,8 +165,9 @@ jobs:
           tar -xzf ${{ inputs.chart_name }}*.tgz
           mv ${{ inputs.chart_name }} automation/${{ inputs.chart_name }}
 
+      # evaluated code at given hash, looks safe
       - name: Push Helm Chart
-        uses: Artur-Davtyan/git-rebase-push-action@v1
+        uses: Artur-Davtyan/git-rebase-push-action@998658f39c4fb5d915ba555acdbc7caea6cdcd7e
         with:
           commit_message: "${{ inputs.chart_name }}"
           repository_path: helm-charts-registry
