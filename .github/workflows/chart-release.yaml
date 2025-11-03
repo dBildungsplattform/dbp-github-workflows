@@ -182,7 +182,7 @@ jobs:
 
           git commit -m "${{ inputs.chart_name }}"
 
-          # based on https://github.com/Artur-Davtyan/git-rebase-push-action/blob/main/entrypoint.sh
+          # based on https://github.com/Artur-Davtyan/git-rebase-push-action/blob/main/entrypoint.sh to have a retry mechanism for concurrent git access by different workflows
           attempt=1          
           while true; do
             echo "Attempting to push... (attempt $attempt)"
