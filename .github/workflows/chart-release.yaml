@@ -173,6 +173,7 @@ jobs:
           repository_path: helm-charts-registry/automation
           user_name: "${{ inputs.chart_name }}-gha"
           user_email: "${{ inputs.chart_name }}@dbildungsplattform.de"
+          max_retries: 10
 
       - name: Set chart release output
         id: chart_release_output
