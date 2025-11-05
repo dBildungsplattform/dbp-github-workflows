@@ -1,4 +1,4 @@
-name: Check image with trivy
+name: Check image and filesystem with trivy
 on:
   workflow_call:
     inputs:
@@ -75,16 +75,6 @@ jobs:
         env:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
-      
-      - name: Set up Node.js
-        if: ${{ always() && inputs.scan_node_dependencies }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install Node.js dependencies
-        if: ${{ always() && inputs.scan_node_dependencies }}
-        run: npm ci
 
       - name: Run Trivy filesystem scan for Node.js dependencies
         if: ${{ always() && inputs.scan_node_dependencies }}
