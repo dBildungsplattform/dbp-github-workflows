@@ -50,7 +50,6 @@ jobs:
     permissions:
         packages: read
         security-events: write   
-
     steps:
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
@@ -80,15 +79,14 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
 
-      - name: Override location of image findings
+      - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
-          mv trivy.tmp trivy-results.sarif
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy-results-for-upload.sarif
           
-      - name: Upload Trivy image scan results to GitHub Security tab
+      - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
-            sarif_file: 'trivy-results.sarif'
+            sarif_file: 'trivy-results-for-upload.sarif'
             category: 'trivy-${{ inputs.scan_type }}-scan'
