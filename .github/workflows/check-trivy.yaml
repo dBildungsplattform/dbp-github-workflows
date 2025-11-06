@@ -50,8 +50,6 @@ jobs:
     permissions:
         packages: read
         security-events: write   
-    env:
-      SCAN_TYPE: ${{ inputs.scan_type }}
 
     steps:
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
@@ -62,13 +60,13 @@ jobs:
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
       
       - name: Checkout code
-        if: ${{ inputs.trivyignores != '' || env.SCAN_TYPE == 'fs' }}
+        if: ${{ inputs.trivyignores != '' || inputs.scan_type == 'fs' }}
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
       - name: Run Trivy vulnerability scanner on image or filesystem
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
-          scan-type: ${{ env.SCAN_TYPE }}
+          scan-type: ${{ inputs.scan_type }}
           image-ref: ${{ steps.image_ref_lower.outputs.output }} # if scan is for image, will be ignored for filesystem scan
           scan-ref: "." # if scan is for filesystem, will be ignored for image scan
           format: "sarif"
@@ -93,4 +91,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
             sarif_file: 'trivy-results.sarif'
-            category: 'trivy-${{ env.SCAN_TYPE }}-scan'
+            category: 'trivy-${{ inputs.scan_type }}-scan'
