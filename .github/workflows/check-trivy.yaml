@@ -1,10 +1,11 @@
-name: Check image with trivy
+name: Check image and filesystem with trivy
 on:
   workflow_call:
     inputs:
       image_ref:
         description: "Image that should be scanned"
-        required: true
+        required: false
+        default: ""
         type: string
       severity:
         description: 'Severity filter (default "CRITICAL,HIGH")'
@@ -36,6 +37,11 @@ on:
         required: false
         default: false
         type: boolean
+      scan_type:
+        description: "Choice of scan type: 'image' or 'fs' (filesystem)."
+        required: false
+        default: 'image'
+        type: string
 
 jobs:
   trivy_scan:
@@ -51,15 +57,17 @@ jobs:
         env:
             image_ref: '${{ inputs.image_ref }}'
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
+      
+      - name: Checkout code
+        if: ${{ inputs.trivyignores != '' || inputs.scan_type == 'fs' }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
-      - name: Checkout code (if trivyignore file exists)
-        if: ${{ inputs.trivyignores != '' }}
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
-
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner on image or filesystem
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
-          image-ref: ${{ steps.image_ref_lower.outputs.output }}
+          scan-type: ${{ inputs.scan_type }}
+          image-ref: ${{ steps.image_ref_lower.outputs.output }} # if scan is for image, will be ignored for filesystem scan
+          scan-ref: "." # if scan is for filesystem, will be ignored for image scan
           format: "sarif"
           output: "trivy-results.sarif"
           severity: ${{ inputs.severity }}
@@ -74,11 +82,11 @@ jobs:
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
-          mv trivy.tmp trivy-results.sarif
-
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy-results-for-upload.sarif
+          
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
-            sarif_file: 'trivy-results.sarif'
+            sarif_file: 'trivy-results-for-upload.sarif'
+            category: 'trivy-${{ inputs.scan_type }}-scan'
