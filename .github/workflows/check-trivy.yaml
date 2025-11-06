@@ -4,7 +4,8 @@ on:
     inputs:
       image_ref:
         description: "Image that should be scanned"
-        required: true
+        required: false
+        default: ""
         type: string
       severity:
         description: 'Severity filter (default "CRITICAL,HIGH")'
