@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
         packages: read
-        security-events: write   
+        security-events: write
     steps:
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
