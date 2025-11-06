@@ -36,11 +36,11 @@ on:
         required: false
         default: false
         type: boolean
-      scan_node_dependencies:
-        description: "Scan Node.js dependencies using trivy fs"
+      scan_type:
+        description: "Choice of scan type: 'image' or 'fs' (filesystem)."
         required: false
-        default: false
-        type: boolean
+        default: 'image'
+        type: string
 
 jobs:
   trivy_scan:
@@ -48,7 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
         packages: read
-        security-events: write
+        security-events: write   
+    env:
+      SCAN_TYPE: ${{ inputs.scan_type }}
+
     steps:
         # GHCR requires the image to be all lowercase, otherwise trivy can't pull the image
       - name: Create lowercase image ref
@@ -58,13 +61,15 @@ jobs:
         run: echo "output=${image_ref,,}" >> $GITHUB_OUTPUT
       
       - name: Checkout code
-        if: ${{ inputs.trivyignores != '' || inputs.scan_node_dependencies }}
+        if: ${{ inputs.trivyignores != '' || env.SCAN_TYPE == 'fs' }}
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
 
-      - name: Run Trivy vulnerability scanner on image
+      - name: Run Trivy vulnerability scanner on image or filesystem
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
-          image-ref: ${{ steps.image_ref_lower.outputs.output }}
+          scan-type: ${{ env.SCAN_TYPE }}
+          image-ref: ${{ steps.image_ref_lower.outputs.output }} # if scan is for image, will be ignored for filesystem scan
+          scan-ref: "." # if scan is for filesystem, will be ignored for image scan
           format: "sarif"
           output: "trivy-results.sarif"
           severity: ${{ inputs.severity }}
@@ -76,42 +81,15 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
 
-      - name: Run Trivy filesystem scan for Node.js dependencies
-        if: ${{ always() && inputs.scan_node_dependencies }}
-        uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          format: "sarif"
-          output: "trivy-node-results.sarif"
-          severity: ${{ inputs.severity }}
-          exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0 }}
-          ignore-unfixed: ${{ inputs.ignore-unfixed }}
-          limit-severities-for-sarif: ${{ inputs.limit-severities-for-sarif }}
-          trivyignores: ${{ inputs.trivyignores }}
-
       - name: Override location of image findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
           jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy.tmp
           mv trivy.tmp trivy-results.sarif
-        
-      - name: Override location of Node.js findings
-        if: ${{ always() && inputs.report_location != '' && inputs.scan_node_dependencies }}
-        run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-node-results.sarif > trivy-node.tmp 
-          mv trivy-node.tmp trivy-node-results.sarif
           
       - name: Upload Trivy image scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
             sarif_file: 'trivy-results.sarif'
-            category: 'trivy-image-scan'
-      
-      - name: Upload Trivy Node.js scan results to GitHub Security tab
-        if: ${{ always() && inputs.scan_node_dependencies == true }}
-        uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
-        with:
-          sarif_file: 'trivy-node-results.sarif'
-          category: 'trivy-node-scan'
+            category: 'trivy-${{ env.SCAN_TYPE }}-scan'
