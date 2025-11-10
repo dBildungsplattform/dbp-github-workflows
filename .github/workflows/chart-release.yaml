@@ -167,6 +167,8 @@ jobs:
 
       - name: Push Helm Chart
         env:
+          # separate token to trigger a GitHub Pages build (https://docs.github.com/en/actions/concepts/security/github_token#when-github_token-triggers-workflow-runs)
+          GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
           BRANCH: main
           MAX_RETRIES: 10
           RETRY_DELAY: 2
