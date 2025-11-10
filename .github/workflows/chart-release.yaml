@@ -153,13 +153,12 @@ jobs:
         with:
           repository: dBildungsplattform/helm-charts-registry
           token: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
-          fetch-depth: 0
           persist-credentials: true
           ref: main
           path: helm-charts-registry
 
       - name: Prepare Helm Chart
-        run:  |
+        run: |
           helm package ${{ inputs.chart_path }}/${{ inputs.chart_name }} -d helm-charts-registry  ${{ inputs.image_tag_generation != 'chart_yaml' && '--app-version $image_tag' || '' }} ${{ inputs.helm_chart_version_generation != 'chart_yaml' && '--version $chart_version' || '' }}
           cd helm-charts-registry
           if [ -d "automation/${{ inputs.chart_name }}" ]; then rm -r automation/${{ inputs.chart_name }}; fi
@@ -168,22 +167,61 @@ jobs:
 
       - name: Push Helm Chart
         env:
+          # separate token to trigger a GitHub Pages build (https://docs.github.com/en/actions/concepts/security/github_token#when-github_token-triggers-workflow-runs)
           GITHUB_TOKEN: ${{ secrets.HELM_CHARTS_REGISTRY_PUBLISHER }}
+          BRANCH: main
+          MAX_RETRIES: 10
+          RETRY_DELAY: 2
         run: |
           git config --global user.email "${{ inputs.chart_name }}@dbildungsplattform.de"
           git config --global user.name "${{ inputs.chart_name }}-gha"
           cd helm-charts-registry/automation
-          git pull
           git add ${{ inputs.chart_name }}
-          if ! git diff --cached --quiet; then
-            echo "Changes detected in staged files. Creating a new commit."
-            git commit -m "${{ inputs.chart_name }}"
-            git push origin main
-          else 
-              # No changes detected in staged files.
-              echo "No changes detected in staged files. Skipping commit and push."
+          if git diff --cached --quiet; then
+            print "No changes to commit"
+            exit 0
           fi
-        
+
+          # based on https://github.com/Artur-Davtyan/git-rebase-push-action/blob/main/entrypoint.sh to have a retry mechanism for concurrent git access by different workflows
+          git commit -m "${{ inputs.chart_name }}"
+          attempt=1          
+          while true; do
+            echo "Attempting to push... (attempt $attempt)"
+            
+            if git push origin "$BRANCH"; then
+              echo "Push successful after $attempt attempts!"
+              break
+            else
+              echo "Push failed, will rebase and retry..."
+              
+              # Check if we've exceeded max retries (if set)
+              if [ $MAX_RETRIES -gt 0 ] && [ $attempt -ge $MAX_RETRIES ]; then
+                echo "Maximum retries ($MAX_RETRIES) exceeded"
+                exit 1
+              fi
+                
+              # Fetch latest changes
+              echo "Fetching latest changes from origin/$BRANCH"
+                if ! git fetch origin "$BRANCH"; then
+                echo "Failed to fetch from origin/$BRANCH"
+                exit 1
+              fi
+                
+              # Rebase our commit on top of latest branch
+              echo "Rebasing on origin/$BRANCH"
+              if git rebase "origin/$BRANCH"; then
+                echo "Rebase successful, retrying push..."
+              else
+                exit 1
+              fi
+   
+              # Increment attempt counter and add delay
+              attempt=$((attempt + 1))
+              echo "Waiting ${RETRY_DELAY} seconds before next attempt..."
+              sleep "$RETRY_DELAY"
+            fi
+          done
+
       - name: Set chart release output
         id: chart_release_output
         run: echo "helm_chart_version=${{ env.chart_version }}" >> $GITHUB_OUTPUT
