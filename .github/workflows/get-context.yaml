@@ -24,10 +24,10 @@ on:
         type: number
     outputs:
       context:
-        value: ${{jobs.preperation.outputs.context}}
+        value: ${{jobs.get-work-context.outputs.context}}
 
 jobs:
-  preperation:
+  get-work-context:
     runs-on: ubuntu-latest
     outputs:
       context: ${{ steps.get-context.outputs.context }}
@@ -40,7 +40,8 @@ jobs:
         id: get-context
         run: |
           echo ${{ inputs.exclude_folders}} | tr ',' '\n' > excludes.txt
-          git fetch origin ${{ inputs.compare_ref}}:${{ inputs.compare_ref}}
+          # https://stackoverflow.com/a/19205680
+          git fetch origin ${{ inputs.compare_ref}}:${{ inputs.compare_ref}} --update-head-ok
           context=$(git diff --name-only $(git merge-base ${{ inputs.compare_ref}} HEAD) | cut -d/ -f 1-${{ inputs.result_depth}} | uniq | { grep -v -w -f excludes.txt || test $? = 1; } )
           if [ -z "${context}" ]
           then
