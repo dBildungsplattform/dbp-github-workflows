@@ -24,10 +24,10 @@ on:
         type: number
     outputs:
       context:
-        value: ${{jobs.preperation.outputs.context}}
+        value: ${{jobs.get-work-context.outputs.context}}
 
 jobs:
-  preperation:
+  get-work-context:
     runs-on: ubuntu-latest
     outputs:
       context: ${{ steps.get-context.outputs.context }}
