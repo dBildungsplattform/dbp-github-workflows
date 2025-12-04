@@ -23,6 +23,6 @@ jobs:
           languages: javascript
 
       - name: Perform analysis
-        uses: github/codeql-action/analyze@65c74964a9ed8c44ed9f19d4bbc5757a6a8e9ab9 #v2.16.1
+        uses: github/codeql-action/analyze@fe4161a26a8629af62121b670040955b330f9af2 #v4.31.6
         with:
           category: /language:javascript
