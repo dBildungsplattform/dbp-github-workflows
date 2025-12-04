@@ -20,9 +20,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@fe4161a26a8629af62121b670040955b330f9af2 #v4.31.6
         with:
-          languages: github-actions
+          languages: javascript,github-actions
 
       - name: Perform analysis
         uses: github/codeql-action/analyze@fe4161a26a8629af62121b670040955b330f9af2 #v4.31.6
-        with:
-          category: /language:github-actions
