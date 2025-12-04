@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  #v4.1.1
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@cf7e9f23492505046de9a37830c3711dd0f25bb3 #v2.16.2
+        uses: github/codeql-action/init@fe4161a26a8629af62121b670040955b330f9af2 #v4.31.6
         with:
           languages: javascript
 
