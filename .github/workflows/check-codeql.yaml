@@ -2,6 +2,11 @@ name: 'Check - CodeQL'
 
 on:
   workflow_call:
+    inputs:
+      codeql_languages:
+        description: ' list of CodeQL languages: javascript,...'
+        required: true
+        type: string
 
 jobs:
   codeql_analyze:
@@ -20,7 +25,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4 #cf7e9f23492505046de9a37830c3711dd0f25bb3 #v2.16.2
         with:
-          languages: javascript,GitHub Actions
+          languages: ${{ inputs.codeql_languages }}
 
       - name: Perform analysis
         uses: github/codeql-action/analyze@v4 #65c74964a9ed8c44ed9f19d4bbc5757a6a8e9ab9 #v2.16.1
