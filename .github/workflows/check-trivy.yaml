@@ -60,8 +60,9 @@ jobs:
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
           image-ref: ${{ steps.image_ref_lower.outputs.output }}
-          format: "sarif"
-          output: "trivy-results.sarif"
+          # format: "sarif"
+          # output: "trivy-results.sarif"
+          format: "table"
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
