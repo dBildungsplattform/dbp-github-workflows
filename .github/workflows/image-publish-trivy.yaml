@@ -91,7 +91,7 @@ on:
         default: ""
         type: string
       build_args:
-        description: "Multiline build args to be used for the docker build step (FOO=bar newline syntax)"
+        description: "Multiline build args to be used for the docker build step (FOO=bar newline syntax). Do NOT pass secrets here, as build args may appear in logs and image layers. For secrets, use safer mechanisms such as BuildKit secrets/secret-files or GitHub Actions/repository secrets."
         required: false
         default: ""
         type: string
