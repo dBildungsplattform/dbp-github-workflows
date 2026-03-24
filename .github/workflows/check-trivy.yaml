@@ -82,11 +82,12 @@ jobs:
       - name: Override location of findings
         if: ${{ always() && inputs.report_location != '' }}
         run: |
-          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy-results-for-upload.sarif
+          jq '.runs[].results[].locations[].physicalLocation.artifactLocation.uri |= "${{ inputs.report_location }}"' trivy-results.sarif > trivy-results-tmp.sarif
+          mv trivy-results-tmp.sarif trivy-results.sarif
           
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@ece8414c725e29de2e18c0859fda9e7280df9488 #v3.24.2
         with:
-            sarif_file: 'trivy-results-for-upload.sarif'
+            sarif_file: 'trivy-results.sarif'
             category: 'trivy-${{ inputs.scan_type }}-scan'
