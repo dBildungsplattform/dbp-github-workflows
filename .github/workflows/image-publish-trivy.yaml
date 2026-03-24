@@ -90,7 +90,7 @@ on:
         required: false
         default: ""
         type: string
-      build-args:
+      build_args:
         description: "Multiline build args to be used for the docker build step (FOO=bar newline syntax)"
         required: false
         default: ""
@@ -180,7 +180,7 @@ jobs:
           tags: ${{ steps.docker_meta_img.outputs.tags }}
           labels: ${{ steps.docker_meta_img.outputs.labels }}
           target: ${{ inputs.target }}
-          build-args: ${{ inputs.build-args }}
+          build-args: ${{ inputs.build_args }}
   
   pre_scan:
     runs-on: ubuntu-latest
