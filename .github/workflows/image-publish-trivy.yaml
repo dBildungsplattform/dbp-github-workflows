@@ -90,6 +90,11 @@ on:
         required: false
         default: ""
         type: string
+      build-args:
+        description: "Multiline build args to be used for the docker build step (FOO=bar newline syntax)"
+        required: false
+        default: ""
+        type: string
     secrets:
       DOCKER_USERNAME:
         required: false
@@ -175,6 +180,7 @@ jobs:
           tags: ${{ steps.docker_meta_img.outputs.tags }}
           labels: ${{ steps.docker_meta_img.outputs.labels }}
           target: ${{ inputs.target }}
+          build-args: ${{ inputs.build-args }}
   
   pre_scan:
     runs-on: ubuntu-latest
