@@ -178,7 +178,7 @@ jobs:
           cd helm-charts-registry/automation
           git add ${{ inputs.chart_name }}
           if git diff --cached --quiet; then
-            print "No changes to commit"
+            echo "No changes to commit"
             exit 0
           fi
 
