@@ -28,6 +28,10 @@ on:
         description: "The owner of the repository in dockerhub. Required when pushing to dockerhub."
         required: false
         type: string
+      ghcr_repository_owner:
+        description: "The owner of the repository in ghcr.io. Required when pushing to ghcr.io."
+        required: false
+        type: string
       quay_repository_owner:
         description: "The owner of the repository in quay.io. Required when pushing to quay.io."
         required: false
