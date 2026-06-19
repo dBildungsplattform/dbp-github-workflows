@@ -126,7 +126,7 @@ jobs:
         if: ${{ inputs.code_source == 'artifact' }}
         uses: actions/download-artifact@9bc31d5d31b685b37ed81e5ba845769e9e1fb2e7 #v4.1.7
         with:
-          name: code
+          name: build-code
 
       - name: Upload checkout code for downstream jobs
         uses: actions/upload-artifact@b4b15b8c7c64e1d701c33b7825880e50ba0d0e85 #v4.3.5
