@@ -99,8 +99,8 @@ on:
         description: "How to obtain the build code: 'checkout' (default, check out from git) or 'artifact' (download from calling workflow's uploaded artifact named 'code')"
         required: false
         default: checkout
-        type: string
-        enum:
+        type: choice
+        options:
           - checkout
           - artifact
     secrets:
