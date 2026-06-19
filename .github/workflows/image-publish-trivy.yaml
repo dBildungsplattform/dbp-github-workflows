@@ -99,10 +99,7 @@ on:
         description: "How to obtain the build code: 'checkout' (default, check out from git) or 'artifact' (download from calling workflow's uploaded artifact named 'code')"
         required: false
         default: checkout
-        type: choice
-        options:
-          - checkout
-          - artifact
+        type: string
     secrets:
       DOCKER_USERNAME:
         required: false
