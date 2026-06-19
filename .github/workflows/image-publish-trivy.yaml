@@ -126,7 +126,7 @@ jobs:
           name: build-code
 
       - name: Upload checkout code for downstream jobs
-        uses: actions/upload-artifact@b4b15b8c7c64e1d701c33b7825880e50ba0d0e85 #v4.3.5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
           name: build-code
           path: .
