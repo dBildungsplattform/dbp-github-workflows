@@ -137,7 +137,7 @@ jobs:
 
   build_and_upload_image:
     name: Publish image
-    needs:collect_code
+    needs: collect_code
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
