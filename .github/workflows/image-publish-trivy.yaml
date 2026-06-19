@@ -95,6 +95,14 @@ on:
         required: false
         default: ""
         type: string
+      code_source:
+        description: "How to obtain the build code: 'checkout' (default, check out from git) or 'artifact' (download from calling workflow's uploaded artifact named 'code')"
+        required: false
+        default: checkout
+        type: string
+        enum:
+          - checkout
+          - artifact
     secrets:
       DOCKER_USERNAME:
         required: false
@@ -106,8 +114,30 @@ on:
         required: false
 
 jobs:
+  collect_code:
+    name: Collect build code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        if: ${{ inputs.code_source == 'checkout' }}
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+
+      - name: Download code artifact
+        if: ${{ inputs.code_source == 'artifact' }}
+        uses: actions/download-artifact@9bc31d5d31b685b37ed81e5ba845769e9e1fb2e7 #v4.1.7
+        with:
+          name: code
+
+      - name: Upload checkout code for downstream jobs
+        uses: actions/upload-artifact@b4b15b8c7c64e1d701c33b7825880e50ba0d0e85 #v4.3.5
+        with:
+          name: build-code
+          path: .
+          retention-days: 1
+
   build_and_upload_image:
     name: Publish image
+    needs:collect_code
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
@@ -115,8 +145,14 @@ jobs:
       packages: write
       contents: read
     steps:
+      - name: Download build code
+        uses: actions/download-artifact@9bc31d5d31b685b37ed81e5ba845769e9e1fb2e7 #v4.1.7
+        with:
+          name: build-code
+          path: .
+
       - name: Check conditional inputs
-        run: | 
+        run: |
           if [[ ${{ contains(inputs.container_registry, 'dockerhub') }} && -z inputs.dockerhub_repository_owner ]]; then
             echo "Error: when pushing to dockerhub a repository owner is required."
             exit 1
@@ -125,9 +161,6 @@ jobs:
             exit 1
           fi
 
-      - name: Checkout Code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
-      
       - name: Build image name and tags
         id: docker_meta_img
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 #v5.5.1
