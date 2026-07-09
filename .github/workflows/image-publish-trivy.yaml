@@ -111,14 +111,6 @@ on:
         required: false
 
 jobs:
-  collect_code:
-    name: Collect build code
-    runs-on: ubuntu-latest
-    steps:
-
-
-
-
   build_and_upload_image:
     name: Publish image
     needs: collect_code
