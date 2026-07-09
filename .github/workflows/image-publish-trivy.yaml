@@ -131,8 +131,8 @@ jobs:
           name: build-code.tar
 
       # see https://github.com/actions/upload-artifact#permission-loss
-      - name: Extract  code artifact
-        run: tar -xfv build_code.tar -C .
+      - name: Extract code artifact
+        run: tar -xvf build-code.tar -C .
 
       - name: Check conditional inputs
         run: |
