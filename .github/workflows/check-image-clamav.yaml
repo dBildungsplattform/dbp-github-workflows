@@ -23,7 +23,7 @@ jobs:
       run: |
         docker create --name scan ${IMAGE_REF@L}
         mkdir tmp_scan
-        docker cp scan:/ ./tmp_scan
+        docker export scan | tar -xf - -C tmp_scan
     - name: Wait until signatures are updated
       timeout-minutes: 2
       run: |
