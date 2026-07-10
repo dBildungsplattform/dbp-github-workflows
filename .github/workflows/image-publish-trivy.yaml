@@ -144,7 +144,10 @@ jobs:
 
       # see https://github.com/actions/upload-artifact#permission-loss
       - name: Extract code artifact
-        run: mkdir -p ${{ inputs.context }} && tar -xvf build-code.tar -C ${{ inputs.context }}
+        run:
+          mkdir -p ${{ inputs.context }}
+          tar -xvf build-code.tar -C ${{ inputs.context }}
+          rm -f build-code.tar
 
       - name: Build image name and tags
         id: docker_meta_img
