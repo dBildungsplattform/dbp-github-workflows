@@ -17,7 +17,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clamav skopeo
-        sudo freshclam
     - name: Extract image content
       env:
         IMAGE_REF: '${{ inputs.image_ref }}'
