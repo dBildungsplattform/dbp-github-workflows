@@ -133,6 +133,7 @@ jobs:
       - name: Checkout Code
         if: ${{ inputs.code_source == 'checkout' }}
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        path: ${{ inputs.context }}
 
       - name: Download code artifact
         if: ${{ inputs.code_source == 'artifact' }}
@@ -142,7 +143,7 @@ jobs:
 
       # see https://github.com/actions/upload-artifact#permission-loss
       - name: Extract code artifact
-        run: tar -xvf build-code.tar -C .
+        run: tar -xvf build-code.tar -C ${{ inputs.context }}
 
       - name: Build image name and tags
         id: docker_meta_img
