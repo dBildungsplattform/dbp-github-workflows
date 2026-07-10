@@ -22,8 +22,7 @@ jobs:
         IMAGE_REF: '${{ inputs.image_ref }}'
       run: |
         docker create --name scan ${IMAGE_REF@L}
-        mkdir tmp_scan
-        docker export scan | tar -xf --no-same-owner - -C tmp_scan
+        docker export scan -o tmp_scan.tar
     - name: Wait until signatures are updated
       timeout-minutes: 2
       run: |
@@ -41,7 +40,7 @@ jobs:
     - name: Scanning image content
       run: |
         set +e
-        clamscan -ir ./tmp_scan
+        clamscan -ir tmp_scan.tar
         if [ $? -eq 1 ]; then
           echo "::error:: Virus findings in image! More details are in the workflow logs."
           exit 1
