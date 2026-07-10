@@ -22,7 +22,7 @@ jobs:
         IMAGE_REF: '${{ inputs.image_ref }}'
       run: |
         docker create --name scan ${IMAGE_REF@L}
-        mkdir -p tmp_scan
+        mkdir tmp_scan
         docker export scan | tar -xf - -C tmp_scan
     - name: Wait until signatures are updated
       timeout-minutes: 2
