@@ -17,6 +17,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clamav skopeo
+        sudo freshclam
     - name: Extract image content
       env:
         IMAGE_REF: '${{ inputs.image_ref }}'
@@ -38,7 +39,7 @@ jobs:
     - name: Scanning image content
       run: |
         set +e
-        clamscan -ir tmp_scan.tar
+        clamscan -ir --max-filesize=0 --max-scansize=0 tmp_scan.tar
         if [ $? -eq 1 ]; then
           echo "::error:: Virus findings in image! More details are in the workflow logs."
           exit 1
