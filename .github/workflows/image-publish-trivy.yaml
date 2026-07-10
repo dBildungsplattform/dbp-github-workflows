@@ -144,7 +144,7 @@ jobs:
 
       # see https://github.com/actions/upload-artifact#permission-loss
       - name: Extract code artifact
-        run:
+        run: |
           mkdir -p ${{ inputs.context }}
           tar -xvf build-code.tar -C ${{ inputs.context }}
           rm -f build-code.tar
