@@ -48,6 +48,9 @@ on:
         description: "List of helm repos to add, in format: repo_name1,repo_url1,repo_name2,repo_url2"
         required: false
         default: ""
+    secrets:
+      HELM_CHARTS_REGISTRY_PUBLISHER:
+        required: true
     outputs:
       helm_chart_version: 
         value: ${{ jobs.release.outputs.helm_chart_version }}
