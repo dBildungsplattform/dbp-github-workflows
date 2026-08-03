@@ -120,7 +120,7 @@ jobs:
     name: Publish image
     runs-on: ubuntu-latest
     outputs:
-      digest: ${{ steps.docker_meta_img.outputs.tag-names }}
+      digest: ${{ steps.docker_build_push.outputs.digest }}
     permissions:
       packages: write
       contents: read
