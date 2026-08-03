@@ -217,7 +217,6 @@ jobs:
 
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         if: ${{ inputs.build_type == 'devcontainer' }}
-        id: docker_build_push
         uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca #v0.3.1900000450
         with:
           configFile: ${{ inputs.context }}/devcontainer.json
