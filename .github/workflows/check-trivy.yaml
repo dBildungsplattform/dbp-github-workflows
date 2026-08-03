@@ -71,14 +71,6 @@ jobs:
         if: ${{ inputs.trivyignores != '' || inputs.scan_type == 'fs' }}
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  #v6.0.3
 
-      - name: Log into ghcr.io
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
-        if: ${{ contains(inputs.container_registry, 'ghcr.io') }}
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Run Trivy vulnerability scanner on image or filesystem
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
         with:
@@ -87,6 +79,7 @@ jobs:
           scan-ref: "." # if scan is for filesystem, will be ignored for image scan
           format: "sarif"
           output: "trivy-results.sarif"
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
           severity: ${{ inputs.severity }}
           exit-code: ${{ inputs.fail_on_vulnerabilites && 1 || 0}}
           ignore-unfixed: ${{ inputs.ignore-unfixed }}
