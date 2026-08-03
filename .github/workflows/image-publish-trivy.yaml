@@ -256,7 +256,7 @@ jobs:
       security-events: write
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@OPS-11657
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity compared to digests
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
@@ -269,4 +269,4 @@ jobs:
     if: ${{ inputs.run_clamav_scan }}
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@OPS-11657
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity compared to digests
