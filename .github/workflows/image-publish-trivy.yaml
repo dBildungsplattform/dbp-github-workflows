@@ -121,6 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
+      tag: ${{ steps.docker_meta_img.outputs.tag-names }}
     permissions:
       packages: write
       contents: read
@@ -255,7 +256,7 @@ jobs:
       security-events: write
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@8
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }}
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
@@ -268,4 +269,4 @@ jobs:
     if: ${{ inputs.run_clamav_scan }}
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@8
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }}
