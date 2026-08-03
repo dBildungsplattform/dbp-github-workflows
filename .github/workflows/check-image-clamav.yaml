@@ -27,7 +27,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y clamav
 
-    - uses: dBildungsplattform/dbp-github-workflows/container-registry-login@OPS-11657
+    - uses: dBildungsplattform/dbp-github-workflows/.github/actions/container-registry-login@OPS-11657
 
     - name: Extract image content
       env:

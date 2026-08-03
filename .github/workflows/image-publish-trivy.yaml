@@ -175,7 +175,7 @@ jobs:
           flavor: |
             latest=${{ inputs.add_latest_tag }}
 
-      - uses: dBildungsplattform/dbp-github-workflows/container-registry-login@OPS-11657
+      - uses: dBildungsplattform/dbp-github-workflows/.github/actions/container-registry-login@OPS-11657
 
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         if: ${{ inputs.build_type == 'container' }}
