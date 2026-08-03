@@ -175,7 +175,21 @@ jobs:
           flavor: |
             latest=${{ inputs.add_latest_tag }}
 
-      - uses: dBildungsplattform/dbp-github-workflows/.github/actions/container-registry-login@OPS-11657
+      - name: Log into ghcr.io
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
+        if: ${{ contains(inputs.container_registry, 'ghcr.io') }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log into quay.io
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
+        if: ${{ contains(inputs.container_registry, 'quay.io') }}
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
 
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         if: ${{ inputs.build_type == 'container' }}
