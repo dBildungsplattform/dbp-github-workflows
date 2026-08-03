@@ -246,6 +246,14 @@ jobs:
           fi
           echo "registry_and_owner=$registry_and_owner" >> $GITHUB_OUTPUT
 
+      - name: Log into ghcr.io
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
+        if: ${{ contains(inputs.container_registry, 'ghcr.io') }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
   trivy_scan:
     name: Trivy scan for uploaded image
     # Wait for image upload
