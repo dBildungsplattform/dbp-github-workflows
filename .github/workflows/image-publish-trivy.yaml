@@ -210,14 +210,20 @@ jobs:
           target: ${{ inputs.target }}
           build-args: ${{ inputs.build_args }}
 
+      - name: Extract image name
+        id: extract-image-name
+        run: |
+          echo "image-name="${{ split(DOCKER_METADATA_OUTPUT_TAGS, ':')[0] }}" " >> "$GITHUB_OUTPUT"
+
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
-        if: ${{ inputs.build_type == 'devcontainer' }} and ${{ contains(inputs.container_registry, 'ghcr.io') == true }}
+        if: ${{ inputs.build_type == 'devcontainer' }}
+        id: docker_build_push
         uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca #v0.3.1900000450
         with:
           configFile: ${{ inputs.context }}/devcontainer.json
-          imageName: ghcr.io/dbildungsplattform/${{ inputs.image_name }}
-          cacheFrom: ghcr.io/dbildungsplattform/${{ inputs.image_name }}
-          imageTag: ${{ steps.docker_meta_img.outputs.tag-names }}
+          imageName: ${{ steps.sets-a-secret.outputs.extract-image-name.image-name }}
+          cacheFrom: ${{ steps.sets-a-secret.outputs.extract-image-name.image-name }}
+          imageTag: ${{ steps.docker_meta_img.outputs.tag-names }},latest
           push: always
 
   pre_scan:
