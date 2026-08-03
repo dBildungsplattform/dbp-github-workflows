@@ -213,8 +213,7 @@ jobs:
       - name: Extract image name
         id: extract-image-name
         run: |
-          echo "image-name="${{ split(env.DOCKER_METADATA_OUTPUT_TAGS, ':')[0] }}" " >> "$GITHUB_OUTPUT"
-
+          echo "image-name="${DOCKER_METADATA_OUTPUT_TAGS%%:*}" >> "$GITHUB_OUTPUT"
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         if: ${{ inputs.build_type == 'devcontainer' }}
         id: docker_build_push
