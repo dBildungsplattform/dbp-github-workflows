@@ -215,9 +215,9 @@ jobs:
         uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca #v0.3.1900000450
         with:
           configFile: ${{ inputs.context }}/devcontainer.json
-          imageName: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
-          cacheFrom: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
-          imageTag: ${{ steps.docker_meta_img.outputs.tag-names }}
+          imageName: ${{ steps.docker_meta_img.outputs.tags
+          #cacheFrom: ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}
+          #imageTag: ${{ steps.docker_meta_img.outputs.tag-names }}
           push: always
 
   pre_scan:
