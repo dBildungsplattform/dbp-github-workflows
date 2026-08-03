@@ -268,5 +268,11 @@ jobs:
     needs: [build_and_upload_image, pre_scan]
     if: ${{ inputs.run_clamav_scan }}
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@OPS-11657
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_TOKEN: ${{ secrets.QUAY_TOKEN }}
+
     with:
       image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity compared to digests
