@@ -120,7 +120,7 @@ jobs:
     name: Publish image
     runs-on: ubuntu-latest
     outputs:
-      digest: ${{ steps.docker_build_push.outputs.digest }}
+      digest: ${{ steps.docker_meta_img.outputs.tag-name }}
     permissions:
       packages: write
       contents: read
@@ -214,6 +214,7 @@ jobs:
         id: extract-image-name
         run: |
           echo "image-name="${DOCKER_METADATA_OUTPUT_TAGS%%:*}" >> "$GITHUB_OUTPUT"
+
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
         if: ${{ inputs.build_type == 'devcontainer' }}
         id: docker_build_push
