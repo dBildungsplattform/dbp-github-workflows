@@ -71,7 +71,7 @@ jobs:
         if: ${{ inputs.trivyignores != '' || inputs.scan_type == 'fs' }}
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  #v6.0.3
 
-      - uses: ./.github/actions/container-registry-login
+      - uses: dBildungsplattform/dbp-github-workflows/container-registry-login@OPS-11657
 
       - name: Run Trivy vulnerability scanner on image or filesystem
         uses: aquasecurity/trivy-action@84384bd6e777ef152729993b8145ea352e9dd3ef #v0.17.0
