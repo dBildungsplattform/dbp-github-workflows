@@ -7,15 +7,6 @@ on:
         description: "Image that should be scanned"
         required: true
         type: string
-    secrets:
-      DOCKER_USERNAME:
-        required: false
-      DOCKER_TOKEN:
-        required: false
-      QUAY_USERNAME:
-        required: false
-      QUAY_TOKEN:
-        required: false
 
 jobs:
   scan:
