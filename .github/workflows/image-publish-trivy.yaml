@@ -246,14 +246,6 @@ jobs:
           fi
           echo "registry_and_owner=$registry_and_owner" >> $GITHUB_OUTPUT
 
-      - name: Log into ghcr.io
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
-        if: ${{ contains(inputs.container_registry, 'ghcr.io') }}
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
   trivy_scan:
     name: Trivy scan for uploaded image
     # Wait for image upload
@@ -262,9 +254,9 @@ jobs:
     permissions:
       packages: read
       security-events: write
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@8
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@OPS-11657
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }}
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
@@ -275,6 +267,6 @@ jobs:
     name: ClamAV scan of uploaded image
     needs: [build_and_upload_image, pre_scan]
     if: ${{ inputs.run_clamav_scan }}
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@8
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@OPS-11657
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }}
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity
