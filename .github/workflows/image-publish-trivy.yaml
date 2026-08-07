@@ -134,7 +134,7 @@ jobs:
         if: ${{ inputs.code_source == 'checkout' }}
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  #v6.0.3
         with:
-          path: ${{ inputs.context }}
+          path: ./build-dir
 
       - name: Download code artifact
         if: ${{ inputs.code_source == 'artifact' }}
@@ -146,8 +146,8 @@ jobs:
       - name: Extract code artifact
         if: ${{ inputs.code_source == 'artifact' }}
         run: |
-          mkdir -p ${{ inputs.context }}
-          tar -xvf build-code.tar -C ${{ inputs.context }}
+          mkdir -p ./build-dir
+          tar -xvf build-code.tar -C ./build-dir
           rm -f build-code.tar
 
       - name: Build image name and tags
@@ -196,7 +196,7 @@ jobs:
         id: docker_build_push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a #v7.3.0
         with:
-          context: ${{ inputs.context }}
+          context: ./build-dir/${{ inputs.context }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.docker_meta_img.outputs.tags }}
