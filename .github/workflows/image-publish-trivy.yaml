@@ -100,6 +100,11 @@ on:
         required: false
         default: checkout
         type: string
+      build_type:
+        description: "What to build: 'container' or 'devcontainer'"
+        required: false
+        default: container
+        type: string
     secrets:
       DOCKER_USERNAME:
         required: false
@@ -116,6 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       digest: ${{ steps.docker_build_push.outputs.digest }}
+      tag: ${{ steps.docker_meta_img.outputs.tag-names }}
     permissions:
       packages: write
       contents: read
@@ -168,7 +174,7 @@ jobs:
             type=raw,value=${{ inputs.image_tag }},enable=${{ contains(inputs.image_tag_generation, 'specified') }}
           flavor: |
             latest=${{ inputs.add_latest_tag }}
-      
+
       - name: Log into ghcr.io
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
         if: ${{ contains(inputs.container_registry, 'ghcr.io') }}
@@ -176,14 +182,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Log into dockerhub
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
         if: ${{ contains(inputs.container_registry, 'dockerhub') }}
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
-      
+
       - name: Log into quay.io
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 #v4.4.0
         if: ${{ contains(inputs.container_registry, 'quay.io') }}
@@ -191,8 +197,9 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
-      
+
       - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
+        if: ${{ inputs.build_type == 'container' }}
         id: docker_build_push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a #v7.3.0
         with:
@@ -203,7 +210,23 @@ jobs:
           labels: ${{ steps.docker_meta_img.outputs.labels }}
           target: ${{ inputs.target }}
           build-args: ${{ inputs.build_args }}
-  
+
+      - name: Extract image name
+        id: extract-image-name
+        if: ${{ inputs.build_type == 'devcontainer' }}
+        run: |
+          echo "image-name=${DOCKER_METADATA_OUTPUT_TAGS%%:*}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push ${{ inputs.image_name }} to ${{ inputs.container_registry }}
+        if: ${{ inputs.build_type == 'devcontainer' }}
+        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca #v0.3.1900000450
+        with:
+          configFile: ${{ inputs.context }}/devcontainer.json
+          imageName: ${{ steps.extract-image-name.outputs.image-name }}
+          cacheFrom: ${{ steps.extract-image-name.outputs.image-name }}
+          imageTag: ${{ steps.docker_meta_img.outputs.tag-names }},latest
+          push: always
+
   pre_scan:
     runs-on: ubuntu-latest
     if: ${{ inputs.run_trivy_scan }}
@@ -231,9 +254,9 @@ jobs:
     permissions:
       packages: read
       security-events: write
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@8
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@OPS-11657
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity compared to digests
       severity: ${{ inputs.trivy_severity }}
       fail_on_vulnerabilites: ${{ inputs.fail_on_vulnerabilites }}
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
@@ -244,6 +267,12 @@ jobs:
     name: ClamAV scan of uploaded image
     needs: [build_and_upload_image, pre_scan]
     if: ${{ inputs.run_clamav_scan }}
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@8
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-image-clamav.yaml@OPS-11657
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_TOKEN: ${{ secrets.QUAY_TOKEN }}
+
     with:
-      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
+      image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}:${{ needs.build_and_upload_image.outputs.tag }} # to have compatibility with both devcontainer and container builds, we use a tag reference and accept ambiguity compared to digests
