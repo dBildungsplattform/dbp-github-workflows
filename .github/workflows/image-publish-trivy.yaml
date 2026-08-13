@@ -250,7 +250,7 @@ jobs:
       report_location: ${{ inputs.report_location }}
       limit-severities-for-sarif:  ${{ inputs.limit-severities-for-sarif }}
       skip_dirs: ${{ inputs.skip_dirs }}
-      skip_files: ${{ inputs.skip_files }}      
+      skip_files: ${{ inputs.skip_files }}
   
   clamav_scan:
     name: ClamAV scan of uploaded image
