@@ -100,6 +100,16 @@ on:
         required: false
         default: checkout
         type: string
+      skip_dirs:
+        description: 'comma separated list of directories where traversal is skipped'
+        required: false
+        default: ''
+        type: string
+      skip_files:
+        description: 'comma separated list of files to be skipped'
+        required: false
+        default: ''
+        type: string
     secrets:
       DOCKER_USERNAME:
         required: false
@@ -231,7 +241,7 @@ jobs:
     permissions:
       packages: read
       security-events: write
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@8
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-trivy.yaml@OPS-11677_CronToolsAuto # To be changed to @8 --- IGNORE ---
     with:
       image_ref: ${{ needs.pre_scan.outputs.registry_and_owner }}/${{ inputs.image_name }}@${{ needs.build_and_upload_image.outputs.digest }}
       severity: ${{ inputs.trivy_severity }}
@@ -239,6 +249,8 @@ jobs:
       ignore-unfixed: ${{ inputs.ignore-unfixed }}
       report_location: ${{ inputs.report_location }}
       limit-severities-for-sarif:  ${{ inputs.limit-severities-for-sarif }}
+      skip_dirs: ${{ inputs.skip_dirs }}
+      skip_files: ${{ inputs.skip_files }}
   
   clamav_scan:
     name: ClamAV scan of uploaded image
