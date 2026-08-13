@@ -45,7 +45,7 @@ on:
       skip_dirs:
         description: 'comma separated list of directories where traversal is skipped'
         required: false
-        default: ''        
+        default: ''
         type: string
       skip_files:
         description: 'comma separated list of files to be skipped'
